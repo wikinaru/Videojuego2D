@@ -4,25 +4,42 @@ using UnityEngine;
 
 public class MovPersonaje : MonoBehaviour
 {
+    GameObject respawn;
     public float multiplicador = 4f;
     public float multiplicadorSalto = 4f;
     private Rigidbody2D rb;
-    private bool salto = true;
-    private int saltosTotales;
+    private bool suelo;
+    private int saltosTotales = 1;
     private int saltosRestantes;
+    private Animator animatorController;
 
-    // Start is called before the first frame update
+    void Awake()
+    {
+        respawn = GameObject.Find("Respawn");
+
+        if (respawn == null)
+        {
+            Debug.LogError("Respawn GameObject not found in the scene.");
+        }
+        
+    }
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+
+        animatorController = GetComponent<Animator>();
+        Spawn_Inicial();
+        saltosRestantes = saltosTotales;
     }
 
-    // Update is called once per frame
     void Update()
     {
         //Variables
         float moverse = Input.GetAxis("Horizontal");
         float miDeltaTime = Time.deltaTime;
+
+        if (GameManager.morir) return;
 
         //Moverse
         rb.velocity = new Vector2(moverse * multiplicador, rb.velocity.y);
@@ -30,34 +47,78 @@ public class MovPersonaje : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.A) && Input.GetKeyDown(KeyCode.D))
         {
 
-        } else if (moverse < 0) {
+        }
+        else if (moverse < 0)
+        {
             this.GetComponent<SpriteRenderer>().flipX = true;
-        } else if (moverse > 0)
+        }
+        else if (moverse > 0)
         {
             this.GetComponent<SpriteRenderer>().flipX = false;
         }
 
-        //Saltar
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, 0.5f);
-        Debug.DrawRay(transform.position, Vector2.down, Color.magenta);
-
-        if (hit)
+        if (moverse != 0)
         {
-            salto = true;
-            Debug.Log(hit.collider.name);
+            animatorController.SetBool("activarCorrer", true);
         }
         else
         {
-            salto = false;
+            animatorController.SetBool("activarCorrer", false);
         }
 
-        if (Input.GetKeyDown(KeyCode.Space) && salto)
+        //Saltar
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, 0.5f);
+        suelo = hit.collider != null;
+
+        if (suelo)
         {
-            rb.AddForce(
+            saltosRestantes = saltosTotales;
+            animatorController.SetBool("activarSaltar", false);
+        }
+
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            if (saltosRestantes > 0)
+            {
+                rb.AddForce(
                 new Vector2(0, multiplicadorSalto),
                 ForceMode2D.Impulse
                 );
-            salto = false;
+            saltosRestantes--;
+            animatorController.SetBool("activarSaltar", true);
+            }
         }
+        
+        //Caerse del mapa
+        if (transform.position.y <= -10)
+        {
+            Respawnear();
+        }
+
+        //Morir
+        if (GameManager.barraVida <= 0)
+        {
+            GameManager.morir = true;
+        }
+    }
+
+    public void ActivarDobleSalto()
+    {
+        saltosTotales = 2;
+        saltosRestantes = saltosTotales;
+    }
+
+    public void Spawn_Inicial()
+    {
+        transform.position = respawn.transform.position;
+    }
+
+
+    public void Respawnear()
+    {
+        Debug.Log(GameManager.barraVida);
+        GameManager.barraVida = GameManager.barraVida - 2;
+        Debug.Log(GameManager.barraVida);
+        transform.position = respawn.transform.position;
     }
 }
