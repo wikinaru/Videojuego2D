@@ -293,7 +293,7 @@ Rigidbody2D:
   m_LinearDrag: 0
   m_AngularDrag: 0.05
   m_GravityScale: 1
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: 8335f7e8a94077e48ad45b5ad9912640, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -330,9 +330,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50ade56d827b7834788b0215d0cc843d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  hitbox: {fileID: 5078849235549184074, guid: 9747a1f506c42a846bdc4cbbe6a9942f, type: 3}
+  hitboxActual: {fileID: 5078849235549184074, guid: 9747a1f506c42a846bdc4cbbe6a9942f, type: 3}
+  puntoAtaque: {fileID: 0}
+  offsetDerecha: {x: 1, y: 0, z: 0}
+  offsetIzquierda: {x: -1, y: 0, z: 0}
   personaje: {fileID: 90122439}
-  offset: {x: 1, y: 0, z: 0}
 --- !u!1 &91710351
 GameObject:
   m_ObjectHideFlags: 0

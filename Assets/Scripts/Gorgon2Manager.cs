@@ -21,7 +21,7 @@ public class Gorgon2Manager : MonoBehaviour
         float distancia = Vector3.Distance(transform.position, personaje.transform.position);
         float velocidadFinal = velocidadGorgon2 * Time.deltaTime;
 
-        if (distancia <= 3.5f)
+        if (distancia <= 2.5f)
         {
             //acercarse
             transform.position = Vector3.MoveTowards(transform.position, personaje.transform.position, velocidadFinal);
@@ -29,7 +29,7 @@ public class Gorgon2Manager : MonoBehaviour
             gorgon2_AnimController.SetBool("gorgon2ActivarCaminar", true);
             gorgon2_AnimController.SetBool("gorgon2ActivarAtacar", false);
 
-            if (distancia <= 2f)
+            if (distancia <= 1.5f)
             {
                 //atacar
                 gorgon2_AnimController.SetBool("gorgon2ActivarCaminar", false);

@@ -113,7 +113,7 @@ AnimatorController:
   m_Name: Gorgon1_AnimController
   serializedVersion: 5
   m_AnimatorParameters:
-  - m_Name: gorgor1ActivarCaminar
+  - m_Name: gorgon1ActivarCaminar
     m_Type: 4
     m_DefaultFloat: 0
     m_DefaultInt: 0
@@ -153,7 +153,7 @@ AnimatorStateTransition:
   m_Name: 
   m_Conditions:
   - m_ConditionMode: 2
-    m_ConditionEvent: gorgor1ActivarCaminar
+    m_ConditionEvent: gorgon1ActivarCaminar
     m_EventTreshold: 0
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: 3636524610946690421}
@@ -178,7 +178,7 @@ AnimatorStateTransition:
   m_Name: 
   m_Conditions:
   - m_ConditionMode: 1
-    m_ConditionEvent: gorgor1ActivarCaminar
+    m_ConditionEvent: gorgon1ActivarCaminar
     m_EventTreshold: 0
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: 4071556217156911117}
