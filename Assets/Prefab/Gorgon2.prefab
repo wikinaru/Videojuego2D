@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 5907381930024556726}
   - component: {fileID: 7757394061311595636}
   - component: {fileID: 6315300909538111389}
+  - component: {fileID: 7399625856267310719}
   m_Layer: 0
   m_Name: Gorgon2
   m_TagString: Enemigo
@@ -180,3 +181,15 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &7399625856267310719
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8767024694052555314}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 05be2877c2c3bc347896ebae3ffe2364, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

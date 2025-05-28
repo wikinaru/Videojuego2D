@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 4603653233158923182}
   - component: {fileID: 5216088590600421571}
   - component: {fileID: 5716790219195614436}
+  - component: {fileID: 2435485442168149079}
   m_Layer: 0
   m_Name: Caballero3
   m_TagString: Enemigo
@@ -180,3 +181,15 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 0.43, y: 0.64}
   m_EdgeRadius: 0
+--- !u!114 &2435485442168149079
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 205749190459571463}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1a1ce57423bda347af397449745d0dd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
