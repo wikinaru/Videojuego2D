@@ -5,13 +5,18 @@ using UnityEngine;
 public class MovPersonaje : MonoBehaviour
 {
     GameObject respawn;
+    private Animator animatorController;
+    private AtaquePersonaje ataqueScript;
+    private Rigidbody2D rb;
+
     public float multiplicador = 4f;
     public float multiplicadorSalto = 4f;
-    private Rigidbody2D rb;
+    public static bool direccion = true;
+
     private bool suelo;
     private int saltosTotales = 1;
     private int saltosRestantes;
-    private Animator animatorController;
+    private bool puedeMoverse = true;
 
     void Awake()
     {
@@ -19,7 +24,7 @@ public class MovPersonaje : MonoBehaviour
 
         if (respawn == null)
         {
-            Debug.LogError("Respawn GameObject not found in the scene.");
+            Debug.LogError("No se ha encontrado el Respawn");
         }
         
     }
@@ -31,6 +36,7 @@ public class MovPersonaje : MonoBehaviour
         animatorController = GetComponent<Animator>();
         Spawn_Inicial();
         saltosRestantes = saltosTotales;
+        ataqueScript = GetComponent<AtaquePersonaje>();
     }
 
     void Update()
@@ -39,7 +45,12 @@ public class MovPersonaje : MonoBehaviour
         float moverse = Input.GetAxis("Horizontal");
         float miDeltaTime = Time.deltaTime;
 
-        if (GameManager.morir) return;
+        if (!puedeMoverse || GameManager.morir) return;
+
+        if (animatorController.GetBool("atacando"))
+        {
+            rb.velocity = Vector2.zero;
+        }
 
         //Moverse
         rb.velocity = new Vector2(moverse * multiplicador, rb.velocity.y);
@@ -51,10 +62,12 @@ public class MovPersonaje : MonoBehaviour
         else if (moverse < 0)
         {
             this.GetComponent<SpriteRenderer>().flipX = true;
+            direccion = true;
         }
         else if (moverse > 0)
         {
             this.GetComponent<SpriteRenderer>().flipX = false;
+            direccion = false;
         }
 
         if (moverse != 0)
@@ -73,22 +86,19 @@ public class MovPersonaje : MonoBehaviour
         if (suelo)
         {
             saltosRestantes = saltosTotales;
-            animatorController.SetBool("activarSaltar", false);
+            animatorController.SetBool("activarSalto", false);
         }
 
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(KeyCode.Space) && saltosRestantes > 0)
         {
-            if (saltosRestantes > 0)
-            {
-                rb.AddForce(
+            rb.AddForce(
                 new Vector2(0, multiplicadorSalto),
                 ForceMode2D.Impulse
                 );
             saltosRestantes--;
-            animatorController.SetBool("activarSaltar", true);
-            }
+            animatorController.SetBool("activarSalto", true);
         }
-        
+
         //Caerse del mapa
         if (transform.position.y <= -10)
         {
@@ -113,6 +123,14 @@ public class MovPersonaje : MonoBehaviour
         transform.position = respawn.transform.position;
     }
 
+    public void Movimiento(bool activar)
+    {
+        puedeMoverse = activar;
+        if (!activar) 
+        {
+            rb.velocity = Vector2.zero;
+        }
+    }
 
     public void Respawnear()
     {

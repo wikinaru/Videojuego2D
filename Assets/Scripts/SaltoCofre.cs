@@ -6,13 +6,14 @@ public class SaltoCofre : MonoBehaviour
 {
     private GameObject _personaje;
     private MovPersonaje _movPersonaje;
-
+    // Start is called before the first frame update
     void Start()
     {
         _personaje = GameObject.Find("Personaje");
         _movPersonaje = _personaje.GetComponent<MovPersonaje>();
     }
 
+    // Update is called once per frame
     void Update()
     {
 
@@ -20,10 +21,10 @@ public class SaltoCofre : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D collision)
     {
-        Debug.Log(collision.name);
         if (collision.name == "Personaje")
         {
             _movPersonaje.ActivarDobleSalto();
+            gameObject.SetActive(false);
         }
     }
 }
