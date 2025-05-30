@@ -4,38 +4,69 @@ using UnityEngine;
 
 public class AtaquePersonaje : MonoBehaviour
 {
-    //Variables para ataque
+    //Configuración de Ataque
     public GameObject hitboxActual;
     public Transform puntoAtaque;
-    public Vector3 offsetDerecha = new Vector3(1f, 0f, 0f);
-    public Vector3 offsetIzquierda = new Vector3(-1f, 0f, 0f);
+    public Vector3 offsetDerecha = new Vector3(0.7f, 0.9f, 0f);
+    public Vector3 offsetIzquierda = new Vector3(-0.7f, 0.9f, 0f);
 
-    //Variables para la animación
+    //Referencias
+    public GameObject personaje;
+
+    // Variables privadas
     private Animator animatorController;
+    private MovPersonaje scriptMovimiento;
     private GameObject hitboxPrivada;
     private bool atacando = false;
+    
+    // Esta variable ahora se sincroniza con MovPersonaje
     private bool mirandoDerecha = true;
-
-    public GameObject personaje;
 
     void Start()
     {
         animatorController = GetComponent<Animator>();
-
+        
         if (puntoAtaque == null)
         {
             puntoAtaque = transform;
+        }
+
+        // Obtener referencia al script de movimiento
+        if (personaje != null)
+        {
+            scriptMovimiento = personaje.GetComponent<MovPersonaje>();
+        }
+        else
+        {
+            scriptMovimiento = GetComponent<MovPersonaje>();
+        }
+
+        if (scriptMovimiento == null)
+        {
+            Debug.LogError("No se pudo encontrar el script MovPersonaje");
         }
     }
 
     void Update()
     {
+        // Sincronizar dirección con el script de movimiento
+        if (scriptMovimiento != null)
+        {
+            mirandoDerecha = scriptMovimiento.MirandoDerecha;
+        }
+
         if (!atacando && Input.GetKeyDown(KeyCode.Mouse0))
         {
             StartCoroutine(ActivarAtaque());
         }
 
         ActualizarPosicionHitbox();
+    }
+
+    // Método para que MovPersonaje pueda actualizar la dirección directamente
+    public void ActualizarDireccionExterna(bool nuevaDireccion)
+    {
+        mirandoDerecha = nuevaDireccion;
     }
 
     void ActualizarPosicionHitbox()
@@ -50,15 +81,13 @@ public class AtaquePersonaje : MonoBehaviour
     IEnumerator ActivarAtaque()
     {
         atacando = true;
-
+        
         CrearHitbox();
-
         animatorController.SetBool("activarAtacar", true);
-
+        
         yield return null;
-
         yield return StartCoroutine(EsperarAnimacion());
-
+        
         FinalizarAtaque();
     }
 
@@ -102,11 +131,7 @@ public class AtaquePersonaje : MonoBehaviour
         atacando = false;
     }
 
-    public void CambiarDireccion(bool nuevaDireccion)
-    {
-        mirandoDerecha = nuevaDireccion;
-    }
-
+    // Métodos para uso desde Animation Events (si los necesitas)
     public void IniciarHitbox()
     {
         if (!atacando) return;

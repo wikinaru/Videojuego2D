@@ -11,39 +11,37 @@ public class MovPersonaje : MonoBehaviour
 
     public float multiplicador = 4f;
     public float multiplicadorSalto = 4f;
-    public static bool direccion = true;
+    
+    public bool MirandoDerecha { get; private set; } = true;
 
     private bool suelo;
     private int saltosTotales = 1;
     private int saltosRestantes;
     private bool puedeMoverse = true;
+    private bool dobleSaltoActivado = false;
 
     void Awake()
     {
         respawn = GameObject.Find("Respawn");
-
         if (respawn == null)
         {
             Debug.LogError("No se ha encontrado el Respawn");
         }
-        
     }
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-
         animatorController = GetComponent<Animator>();
+        ataqueScript = GetComponent<AtaquePersonaje>();
+        
         Spawn_Inicial();
         saltosRestantes = saltosTotales;
-        ataqueScript = GetComponent<AtaquePersonaje>();
     }
 
     void Update()
     {
-        //Variables
         float moverse = Input.GetAxis("Horizontal");
-        float miDeltaTime = Time.deltaTime;
 
         if (!puedeMoverse || GameManager.morir) return;
 
@@ -52,34 +50,27 @@ public class MovPersonaje : MonoBehaviour
             rb.velocity = Vector2.zero;
         }
 
-        //Moverse
+        // Moverse
         rb.velocity = new Vector2(moverse * multiplicador, rb.velocity.y);
 
+        // Manejo de dirección centralizado
         if (Input.GetKeyDown(KeyCode.A) && Input.GetKeyDown(KeyCode.D))
         {
-
+            // No hacer nada si ambas teclas se presionan
         }
         else if (moverse < 0)
         {
-            this.GetComponent<SpriteRenderer>().flipX = true;
-            direccion = true;
+            CambiarDireccion(false); // Mirando izquierda
         }
         else if (moverse > 0)
         {
-            this.GetComponent<SpriteRenderer>().flipX = false;
-            direccion = false;
+            CambiarDireccion(true); // Mirando derecha
         }
 
-        if (moverse != 0)
-        {
-            animatorController.SetBool("activarCorrer", true);
-        }
-        else
-        {
-            animatorController.SetBool("activarCorrer", false);
-        }
+        // Animación de correr
+        animatorController.SetBool("activarCorrer", moverse != 0);
 
-        //Saltar
+        // Saltar
         RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, 0.5f);
         suelo = hit.collider != null;
 
@@ -91,31 +82,49 @@ public class MovPersonaje : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Space) && saltosRestantes > 0)
         {
-            rb.AddForce(
-                new Vector2(0, multiplicadorSalto),
-                ForceMode2D.Impulse
-                );
+            rb.AddForce(new Vector2(0, multiplicadorSalto), ForceMode2D.Impulse);
             saltosRestantes--;
             animatorController.SetBool("activarSalto", true);
         }
 
-        //Caerse del mapa
+        // Caerse del mapa
         if (transform.position.y <= -10)
         {
             Respawnear();
         }
 
-        //Morir
+        // Morir
         if (GameManager.barraVida <= 0)
         {
             GameManager.morir = true;
         }
     }
 
+    // Método centralizado para cambiar dirección
+    private void CambiarDireccion(bool derecha)
+    {
+        if (MirandoDerecha == derecha) return;
+
+        MirandoDerecha = derecha;
+        GetComponent<SpriteRenderer>().flipX = !derecha;
+        
+        if (ataqueScript != null)
+        {
+            ataqueScript.ActualizarDireccionExterna(derecha);
+        }
+    }
+
     public void ActivarDobleSalto()
     {
+        dobleSaltoActivado = true;
         saltosTotales = 2;
-        saltosRestantes = saltosTotales;
+
+        if (suelo)
+        {
+            saltosRestantes = 2;
+        }
+
+        Debug.Log("Doble Salto Activado!");
     }
 
     public void Spawn_Inicial()
@@ -134,9 +143,9 @@ public class MovPersonaje : MonoBehaviour
 
     public void Respawnear()
     {
-        Debug.Log(GameManager.barraVida);
+        Debug.Log("Vida antes: " + GameManager.barraVida);
         GameManager.barraVida = GameManager.barraVida - 2;
-        Debug.Log(GameManager.barraVida);
+        Debug.Log("Vida después: " + GameManager.barraVida);
         transform.position = respawn.transform.position;
     }
 }

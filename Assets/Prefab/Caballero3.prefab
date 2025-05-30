@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 5216088590600421571}
   - component: {fileID: 5716790219195614436}
   - component: {fileID: 2435485442168149079}
+  - component: {fileID: 8851989273255196742}
   m_Layer: 0
   m_Name: Caballero3
   m_TagString: Enemigo
@@ -194,3 +195,25 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   velocidadCaballero3: 2
+  tiempoEntreAtaques: 1.5
+--- !u!114 &8851989273255196742
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 205749190459571463}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c38081645393c14d91d169066d51462, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hitboxEnemigo: {fileID: 864216830591752097, guid: 011c2ec59aa1d984d9493aaadc306403, type: 3}
+  puntoAtaque: {fileID: 0}
+  offsetDerecha: {x: 0.7, y: 0.2, z: 0}
+  offsetIzquierda: {x: -0.7, y: 0.2, z: 0}
+  danoAtaque: 1
+  duracionHitbox: 0.5
+  capasJugador:
+    serializedVersion: 2
+    m_Bits: 0

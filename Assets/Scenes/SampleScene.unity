@@ -332,8 +332,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   hitboxActual: {fileID: 5078849235549184074, guid: 9747a1f506c42a846bdc4cbbe6a9942f, type: 3}
   puntoAtaque: {fileID: 0}
-  offsetDerecha: {x: 1, y: 0, z: 0}
-  offsetIzquierda: {x: -1, y: 0, z: 0}
+  offsetDerecha: {x: 0.7, y: 0.9, z: 0}
+  offsetIzquierda: {x: -0.7, y: 0.9, z: 0}
   personaje: {fileID: 90122439}
 --- !u!1 &91710351
 GameObject:
@@ -672,6 +672,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf85e0f8256af4a449afaa3f0a48e91d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  spriteCofrecerrado: {fileID: 21300000, guid: 0eb26ee55cfd4b74b9dd1adbd8ce8ebd, type: 3}
+  spriteCofreabierto: {fileID: 21300000, guid: 34776462f15cb4c4fac4c3f1fd2207e0, type: 3}
 --- !u!4 &290475792 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8273650412776259952, guid: 0aa7e2d7f84d2f94995b4efcaa2dcc3d, type: 3}
@@ -2152,7 +2154,7 @@ TilemapRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 52b91af4b80f96d4585c3fa54992d302, type: 2}
+  - {fileID: 2100000, guid: 9f2a8d05f838cc3468b6baa6c93ae34d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -6979,6 +6981,18 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 112836249959907057, guid: d127b5fbb7398ea44b24f62954a661f8, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 600362142093469543, guid: d127b5fbb7398ea44b24f62954a661f8, type: 3}
+      propertyPath: offsetDerecha.y
+      value: 0.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 600362142093469543, guid: d127b5fbb7398ea44b24f62954a661f8, type: 3}
+      propertyPath: offsetIzquierda.y
+      value: 0.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 600362142093469543, guid: d127b5fbb7398ea44b24f62954a661f8, type: 3}
+      propertyPath: capasJugador.m_Bits
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8245655485261774910, guid: d127b5fbb7398ea44b24f62954a661f8, type: 3}

@@ -28,6 +28,7 @@ public class GameManager : MonoBehaviour
     public static Dictionary<string, ConfiguracionEnemigo> enemigos;
     
     public static GameManager Instance;
+    private Animator animator;
     
     void Awake()
     {
@@ -77,17 +78,38 @@ public class GameManager : MonoBehaviour
         barraVida += curacion;
         if (barraVida > 10f) barraVida = 10f;
     }
+
+    public static void DanarJugador(GameObject jugador, float damage)
+    {
+        DamageDeJugador(damage);
+
+        if (Instance != null)
+        {
+            Instance.StartCoroutine(Instance.EfectoDanoJugador(jugador));
+        }
+    }
+
+    IEnumerator EfectoDanoJugador(GameObject jugador)
+    {
+        SpriteRenderer sr = jugador.GetComponent<SpriteRenderer>();
+        if (sr != null)
+        {
+            Color colorOriginal = sr.color;
+            sr.color = Color.red;
+            yield return new WaitForSeconds(0.2f);
+            sr.color = colorOriginal;
+        }
+    }
     
     void OnJugadorDanado()
     {
-        // Aquí puedes agregar efectos cuando el jugador recibe daño
         Debug.Log("Jugador dañado. Vida actual: " + barraVida);
     }
     
     void OnJugadorMuere()
     {
+        animator.SetBool("activarMuerte", true);
         Debug.Log("¡El jugador ha muerto!");
-        // Reiniciar nivel, mostrar pantalla de game over, etc.
     }
 
     // ===== MÉTODOS PARA ENEMIGOS =====
