@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 7757394061311595636}
   - component: {fileID: 6315300909538111389}
   - component: {fileID: 7399625856267310719}
+  - component: {fileID: 759562895772603218}
   m_Layer: 0
   m_Name: Gorgon2
   m_TagString: Enemigo
@@ -194,3 +195,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   velocidadGorgon2: 2
+--- !u!114 &759562895772603218
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8767024694052555314}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0e3cc8a8738fea24e9bc7fa250b122c1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

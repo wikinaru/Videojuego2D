@@ -18,6 +18,9 @@ public class AtaqueGorgon : MonoBehaviour
     private bool atacando = false;
     private bool mirandoDerecha = true;
     private Animator animatorController;
+    
+    // Variables para detección automática
+    private bool animacionAtaqueAnterior = false;
 
     void Start()
     {
@@ -38,12 +41,41 @@ public class AtaqueGorgon : MonoBehaviour
         }
 
         ActualizarPosicionHitbox();
+        
+        DetectarInicioAtaque();
+    }
+
+    void DetectarInicioAtaque()
+    {
+        if (animatorController != null)
+        {
+            bool atacandoAhora = animatorController.GetBool("gorgon1ActivarAtacar");
+
+            if (atacandoAhora && !animacionAtaqueAnterior && !atacando)
+            {
+                Debug.Log("Detectado inicio de animación de ataque!");
+                StartCoroutine(EsperarYAtacar());
+            }
+            
+            animacionAtaqueAnterior = atacandoAhora;
+        }
+    }
+
+    IEnumerator EsperarYAtacar()
+    {
+        yield return new WaitForSeconds(0.3f);
+
+        if (animatorController.GetBool("gorgon1ActivarAtacar"))
+        {
+            IniciarAtaque();
+        }
     }
 
     public void IniciarAtaque()
     {
         if (!atacando)
         {
+            Debug.Log("¡Iniciando ataque del Gorgon!");
             StartCoroutine(EjecutarAtaque());
         }
     }
@@ -74,11 +106,17 @@ public class AtaqueGorgon : MonoBehaviour
         Vector3 posicionHitbox = puntoAtaque.position + offset;
 
         hitboxPrivada = Instantiate(hitboxEnemigo, posicionHitbox, Quaternion.identity);
+        Debug.Log("Hitbox creada en posición: " + posicionHitbox);
 
         HitboxAtaqueGorgon hitboxScript = hitboxPrivada.GetComponent<HitboxAtaqueGorgon>();
         if (hitboxScript != null)
         {
             hitboxScript.ConfigurarAtaque(danoAtaque, mirandoDerecha, gameObject);
+            Debug.Log("Hitbox configurada correctamente");
+        }
+        else
+        {
+            Debug.LogError("No se encontró el script HitboxAtaqueGorgon en el prefab de hitbox");
         }
     }
 
@@ -88,6 +126,7 @@ public class AtaqueGorgon : MonoBehaviour
         {
             Destroy(hitboxPrivada);
             hitboxPrivada = null;
+            Debug.Log("Hitbox destruida");
         }
 
         atacando = false;

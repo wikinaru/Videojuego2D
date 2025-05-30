@@ -10,6 +10,7 @@ public class AtaqueCaballero : MonoBehaviour
     public Vector3 offsetIzquierda = new Vector3(-0.7f, 0.3f, 0f);
     public float danoAtaque = 1f;
     public float duracionHitbox = 0.5f;
+    public float tiempoEsperaAtaque = 0.3f;
 
     public LayerMask capasJugador = 1 << 7;
     
@@ -18,6 +19,8 @@ public class AtaqueCaballero : MonoBehaviour
     private bool atacando = false;
     private bool mirandoDerecha = true;
     private Animator animatorController;
+    
+    private bool animacionAtaqueAnterior = false;
 
     void Start()
     {
@@ -38,12 +41,49 @@ public class AtaqueCaballero : MonoBehaviour
         }
 
         ActualizarPosicionHitbox();
+
+        DetectarInicioAtaque();
+    }
+
+    void DetectarInicioAtaque()
+    {
+        if (animatorController != null)
+        {
+            bool atacandoAhora = animatorController.GetBool("caballero3ActivarAtacar");
+
+            if (atacandoAhora && !animacionAtaqueAnterior && !atacando)
+            {
+                Debug.Log("Detectado inicio de animación de ataque del Caballero3!");
+                StartCoroutine(EsperarYAtacar());
+            }
+            
+            animacionAtaqueAnterior = atacandoAhora;
+        }
+    }
+
+    IEnumerator EsperarYAtacar()
+    {
+        yield return new WaitForSeconds(tiempoEsperaAtaque);
+
+        if (animatorController.GetBool("caballero3ActivarAtacar"))
+        {
+            IniciarAtaqueAutomatico();
+        }
     }
 
     public void IniciarAtaque()
     {
         if (!atacando)
         {
+            StartCoroutine(EjecutarAtaque());
+        }
+    }
+
+    void IniciarAtaqueAutomatico()
+    {
+        if (!atacando)
+        {
+            Debug.Log("¡Iniciando ataque automático del Caballero3!");
             StartCoroutine(EjecutarAtaque());
         }
     }
@@ -74,11 +114,17 @@ public class AtaqueCaballero : MonoBehaviour
         Vector3 posicionHitbox = puntoAtaque.position + offset;
 
         hitboxPrivada = Instantiate(hitboxEnemigo, posicionHitbox, Quaternion.identity);
+        Debug.Log("Hitbox del Caballero3 creada en posición: " + posicionHitbox);
 
         HitboxAtaqueCaballero3 hitboxScript = hitboxPrivada.GetComponent<HitboxAtaqueCaballero3>();
         if (hitboxScript != null)
         {
             hitboxScript.ConfigurarAtaque(danoAtaque, mirandoDerecha, gameObject);
+            Debug.Log("Hitbox del Caballero3 configurada correctamente");
+        }
+        else
+        {
+            Debug.LogError("No se encontró el script HitboxAtaqueCaballero3 en el prefab de hitbox");
         }
     }
 
@@ -88,6 +134,7 @@ public class AtaqueCaballero : MonoBehaviour
         {
             Destroy(hitboxPrivada);
             hitboxPrivada = null;
+            Debug.Log("Hitbox del Caballero3 destruida");
         }
 
         atacando = false;
