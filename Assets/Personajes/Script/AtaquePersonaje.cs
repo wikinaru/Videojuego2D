@@ -19,7 +19,6 @@ public class AtaquePersonaje : MonoBehaviour
     private GameObject hitboxPrivada;
     private bool atacando = false;
     
-    // Esta variable ahora se sincroniza con MovPersonaje
     private bool mirandoDerecha = true;
 
     void Start()
@@ -31,7 +30,6 @@ public class AtaquePersonaje : MonoBehaviour
             puntoAtaque = transform;
         }
 
-        // Obtener referencia al script de movimiento
         if (personaje != null)
         {
             scriptMovimiento = personaje.GetComponent<MovPersonaje>();
@@ -49,7 +47,6 @@ public class AtaquePersonaje : MonoBehaviour
 
     void Update()
     {
-        // Sincronizar dirección con el script de movimiento
         if (scriptMovimiento != null)
         {
             mirandoDerecha = scriptMovimiento.MirandoDerecha;
@@ -59,11 +56,13 @@ public class AtaquePersonaje : MonoBehaviour
         {
             StartCoroutine(ActivarAtaque());
         }
+    }
 
+    void FixedUpdate()
+    {
         ActualizarPosicionHitbox();
     }
 
-    // Método para que MovPersonaje pueda actualizar la dirección directamente
     public void ActualizarDireccionExterna(bool nuevaDireccion)
     {
         mirandoDerecha = nuevaDireccion;
@@ -131,7 +130,6 @@ public class AtaquePersonaje : MonoBehaviour
         atacando = false;
     }
 
-    // Métodos para uso desde Animation Events (si los necesitas)
     public void IniciarHitbox()
     {
         if (!atacando) return;

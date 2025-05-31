@@ -16,6 +16,12 @@ public class Gorgon2Manager : MonoBehaviour
     private SpriteRenderer spriteRenderer;
     private bool mirandoDerecha = true;
     
+    // Variables para el sistema de movimiento
+    private enum EstadoMovimiento { Idle, Persiguiendo, Atacando, VolviendoAInicio }
+    private EstadoMovimiento estadoActual = EstadoMovimiento.Idle;
+    private Vector3 objetivoMovimiento;
+    private bool debeMoverse = false;
+    
     void Start()
     {
         gorgon2_AnimController = GetComponent<Animator>();
@@ -35,20 +41,37 @@ public class Gorgon2Manager : MonoBehaviour
         if (personaje == null) return;
 
         float distancia = Vector3.Distance(transform.position, personaje.transform.position);
-        float velocidadFinal = velocidadGorgon2 * Time.deltaTime;
+        ProcesarEstadoIA(distancia);
+    }
 
+    void FixedUpdate()
+    {
+        if (debeMoverse)
+        {
+            EjecutarMovimiento();
+        }
+    }
+
+    void ProcesarEstadoIA(float distancia)
+    {
         if (distancia <= distanciaAtaque)
         {
             // ATACAR
+            CambiarEstado(EstadoMovimiento.Atacando);
+            
             gorgon2_AnimController.SetBool("gorgon2ActivarCaminar", false);
             gorgon2_AnimController.SetBool("gorgon2ActivarAtacar", true);
             
             ActualizarDireccion();
+            debeMoverse = false;
         }
         else if (distancia <= distanciaDeteccion)
         {
             // ACERCARSE/PERSEGUIR
-            transform.position = Vector3.MoveTowards(transform.position, personaje.transform.position, velocidadFinal);
+            CambiarEstado(EstadoMovimiento.Persiguiendo);
+            
+            objetivoMovimiento = personaje.transform.position;
+            debeMoverse = true;
 
             ActualizarDireccion();
 
@@ -58,6 +81,11 @@ public class Gorgon2Manager : MonoBehaviour
         else
         {
             // VOLVER A POSICIÓN INICIAL
+            CambiarEstado(EstadoMovimiento.VolviendoAInicio);
+            
+            objetivoMovimiento = posicionInical;
+            debeMoverse = true;
+            
             Vector3 direccionAInicial = (posicionInical - transform.position).normalized;
             if (direccionAInicial.x > 0.1f)
             {
@@ -72,7 +100,36 @@ public class Gorgon2Manager : MonoBehaviour
             
             gorgon2_AnimController.SetBool("gorgon2ActivarCaminar", true);
             gorgon2_AnimController.SetBool("gorgon2ActivarAtacar", false);
-            transform.position = Vector3.MoveTowards(transform.position, posicionInical, velocidadFinal);
+        }
+    }
+
+    void EjecutarMovimiento()
+    {
+        float velocidadFinal = velocidadGorgon2 * Time.fixedDeltaTime;
+        
+        switch (estadoActual)
+        {
+            case EstadoMovimiento.Persiguiendo:
+                transform.position = Vector3.MoveTowards(transform.position, objetivoMovimiento, velocidadFinal);
+                break;
+                
+            case EstadoMovimiento.VolviendoAInicio:
+                transform.position = Vector3.MoveTowards(transform.position, objetivoMovimiento, velocidadFinal);
+                
+                if (Vector3.Distance(transform.position, posicionInical) < 0.1f)
+                {
+                    debeMoverse = false;
+                    CambiarEstado(EstadoMovimiento.Idle);
+                }
+                break;
+        }
+    }
+
+    void CambiarEstado(EstadoMovimiento nuevoEstado)
+    {
+        if (estadoActual != nuevoEstado)
+        {
+            estadoActual = nuevoEstado;
         }
     }
 

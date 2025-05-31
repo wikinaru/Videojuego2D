@@ -10,7 +10,6 @@ public class AtaqueGorgon : MonoBehaviour
     public Vector3 offsetIzquierda = new Vector3(-0.7f, 0f, 0f);
     public float danoAtaque = 1f;
     public float duracionHitbox = 0.5f;
-
     public LayerMask capasJugador = 1 << 0;
     
     // Variables privadas
@@ -19,8 +18,11 @@ public class AtaqueGorgon : MonoBehaviour
     private bool mirandoDerecha = true;
     private Animator animatorController;
     
-    // Variables para detección automática
     private bool animacionAtaqueAnterior = false;
+    
+    private GameObject jugadorCacheado;
+    private float tiempoUltimaActualizacionJugador;
+    private const float INTERVALO_BUSQUEDA_JUGADOR = 1f;
 
     void Start()
     {
@@ -30,19 +32,46 @@ public class AtaqueGorgon : MonoBehaviour
         {
             puntoAtaque = transform;
         }
+        
+        BuscarJugador();
     }
 
     void Update()
     {
-        GameObject jugador = GameObject.FindGameObjectWithTag("Player");
-        if (jugador != null)
-        {
-            mirandoDerecha = jugador.transform.position.x > transform.position.x;
-        }
-
-        ActualizarPosicionHitbox();
-        
+        ActualizarReferenciaJugador();
+        ActualizarDireccion();
         DetectarInicioAtaque();
+    }
+
+    void FixedUpdate()
+    {
+        ActualizarPosicionHitbox();
+    }
+
+    void ActualizarReferenciaJugador()
+    {
+        if (jugadorCacheado == null || Time.time - tiempoUltimaActualizacionJugador > INTERVALO_BUSQUEDA_JUGADOR)
+        {
+            BuscarJugador();
+            tiempoUltimaActualizacionJugador = Time.time;
+        }
+    }
+
+    void BuscarJugador()
+    {
+        jugadorCacheado = GameObject.FindGameObjectWithTag("Player");
+        if (jugadorCacheado == null)
+        {
+            Debug.LogWarning("No se encontró jugador con tag 'Player'");
+        }
+    }
+
+    void ActualizarDireccion()
+    {
+        if (jugadorCacheado != null)
+        {
+            mirandoDerecha = jugadorCacheado.transform.position.x > transform.position.x;
+        }
     }
 
     void DetectarInicioAtaque()
@@ -58,6 +87,15 @@ public class AtaqueGorgon : MonoBehaviour
             }
             
             animacionAtaqueAnterior = atacandoAhora;
+        }
+    }
+
+    void ActualizarPosicionHitbox()
+    {
+        if (hitboxPrivada != null)
+        {
+            Vector3 offset = mirandoDerecha ? offsetDerecha : offsetIzquierda;
+            hitboxPrivada.transform.position = puntoAtaque.position + offset;
         }
     }
 
@@ -77,15 +115,6 @@ public class AtaqueGorgon : MonoBehaviour
         {
             Debug.Log("¡Iniciando ataque del Gorgon!");
             StartCoroutine(EjecutarAtaque());
-        }
-    }
-
-    void ActualizarPosicionHitbox()
-    {
-        if (hitboxPrivada != null)
-        {
-            Vector3 offset = mirandoDerecha ? offsetDerecha : offsetIzquierda;
-            hitboxPrivada.transform.position = puntoAtaque.position + offset;
         }
     }
 

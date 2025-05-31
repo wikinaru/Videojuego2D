@@ -12,9 +12,20 @@ public class MovPersonaje : MonoBehaviour
     public float multiplicador = 4f;
     public float multiplicadorSalto = 4f;
     
+    public LayerMask capaSuelo = -1;
+    public float distanciaDeteccionSuelo = 0.1f;
+    public float anchoDeteccionSuelo = 0.8f;
+    
+    private float moverse;
+    private bool inputSalto;
+    private bool inputSaltoBuffer;
+    private float tiempoBufferSalto = 0.1f;
+    private float timerBufferSalto;
+    
     public bool MirandoDerecha { get; private set; } = true;
 
     private bool suelo;
+    private bool sueloAnterior;
     private int saltosTotales = 1;
     private int saltosRestantes;
     private bool puedeMoverse = true;
@@ -41,62 +52,134 @@ public class MovPersonaje : MonoBehaviour
 
     void Update()
     {
-        float moverse = Input.GetAxis("Horizontal");
+        CapturarInputs();
+        
+        if (!puedeMoverse || GameManager.morir) return;
 
+        ManejarDireccion();
+        ManejarAnimaciones();
+        
+        DetectarSuelo();
+        
+        if (transform.position.y <= -10)
+        {
+            Respawnear();
+        }
+
+        if (GameManager.barraVida <= 0)
+        {
+            GameManager.morir = true;
+        }
+    }
+
+    void FixedUpdate()
+    {
         if (!puedeMoverse || GameManager.morir) return;
 
         if (animatorController.GetBool("atacando"))
         {
-            rb.velocity = Vector2.zero;
+            rb.velocity = new Vector2(0, rb.velocity.y);
+            return;
         }
 
-        // Moverse
-        rb.velocity = new Vector2(moverse * multiplicador, rb.velocity.y);
+        AplicarMovimientoHorizontal();
+        AplicarSalto();
+    }
 
-        // Manejo de dirección centralizado
+    private void CapturarInputs()
+    {
+        moverse = Input.GetAxis("Horizontal");
+        
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            inputSalto = true;
+            inputSaltoBuffer = true;
+            timerBufferSalto = tiempoBufferSalto;
+        }
+        
+        if (inputSaltoBuffer)
+        {
+            timerBufferSalto -= Time.deltaTime;
+            if (timerBufferSalto <= 0)
+            {
+                inputSaltoBuffer = false;
+            }
+        }
+    }
+
+    private void ManejarDireccion()
+    {
         if (Input.GetKeyDown(KeyCode.A) && Input.GetKeyDown(KeyCode.D))
         {
             // No hacer nada si ambas teclas se presionan
         }
         else if (moverse < 0)
         {
-            CambiarDireccion(false); // Mirando izquierda
+            CambiarDireccion(false); //izquierda
         }
         else if (moverse > 0)
         {
-            CambiarDireccion(true); // Mirando derecha
+            CambiarDireccion(true); //derecha
         }
+    }
 
-        // Animación de correr
+    private void ManejarAnimaciones()
+    {
         animatorController.SetBool("activarCorrer", moverse != 0);
+    }
 
-        // Saltar
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, 0.5f);
-        suelo = hit.collider != null;
+    private void DetectarSuelo()
+    {
+        sueloAnterior = suelo;
+        
+        Vector2 posicion = transform.position;
+        Vector2 tamaño = new Vector2(anchoDeteccionSuelo, distanciaDeteccionSuelo);
+        
+        RaycastHit2D hit = Physics2D.BoxCast(
+            posicion, 
+            tamaño, 
+            0f, 
+            Vector2.down, 
+            distanciaDeteccionSuelo, 
+            capaSuelo
+        );
+        
+        suelo = hit.collider != null && hit.collider.gameObject != gameObject;
 
-        if (suelo)
+        if (suelo && !sueloAnterior)
         {
             saltosRestantes = saltosTotales;
             animatorController.SetBool("activarSalto", false);
+            Debug.Log("Aterrizó - Saltos restaurados: " + saltosRestantes);
         }
+    }
 
-        if (Input.GetKeyDown(KeyCode.Space) && saltosRestantes > 0)
+    private void AplicarMovimientoHorizontal()
+    {
+        rb.velocity = new Vector2(moverse * multiplicador, rb.velocity.y);
+    }
+
+    private void AplicarSalto()
+    {
+        bool deberíaSaltar = (inputSalto || inputSaltoBuffer) && saltosRestantes > 0;
+        
+        if (deberíaSaltar)
         {
+            rb.velocity = new Vector2(rb.velocity.x, 0);
             rb.AddForce(new Vector2(0, multiplicadorSalto), ForceMode2D.Impulse);
+            
             saltosRestantes--;
             animatorController.SetBool("activarSalto", true);
+            
+            inputSalto = false;
+            inputSaltoBuffer = false;
+            timerBufferSalto = 0;
+            
+            Debug.Log($"¡Saltando! Saltos restantes: {saltosRestantes}");
         }
-
-        // Caerse del mapa
-        if (transform.position.y <= -10)
+        else
         {
-            Respawnear();
-        }
-
-        // Morir
-        if (GameManager.barraVida <= 0)
-        {
-            GameManager.morir = true;
+            inputSalto = false;
         }
     }
 
@@ -107,7 +190,7 @@ public class MovPersonaje : MonoBehaviour
 
         MirandoDerecha = derecha;
         GetComponent<SpriteRenderer>().flipX = !derecha;
-        
+
         if (ataqueScript != null)
         {
             ataqueScript.ActualizarDireccionExterna(derecha);
@@ -147,5 +230,19 @@ public class MovPersonaje : MonoBehaviour
         GameManager.barraVida = GameManager.barraVida - 2;
         Debug.Log("Vida después: " + GameManager.barraVida);
         transform.position = respawn.transform.position;
+
+        if (rb != null)
+        {
+            rb.velocity = Vector2.zero;
+        }
+    }
+
+    // Método para debug visual en el editor
+    void OnDrawGizmosSelected()
+    {
+        Gizmos.color = suelo ? Color.green : Color.red;
+        Vector3 pos = transform.position;
+        Vector3 tamaño = new Vector3(anchoDeteccionSuelo, distanciaDeteccionSuelo, 0.1f);
+        Gizmos.DrawWireCube(pos + Vector3.down * distanciaDeteccionSuelo, tamaño);
     }
 }

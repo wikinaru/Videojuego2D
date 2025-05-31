@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class SistemaCofresYPuerta : MonoBehaviour
 {
@@ -16,7 +17,7 @@ public class SistemaCofresYPuerta : MonoBehaviour
     public Sprite spritePuertaAbierta;
     public AudioClip sonidoAbrirPuerta;
     
-    public string nombreEscenaSiguiente = "MenuPrincipal";
+    public string nombreEscenaSiguiente = "2FinalScene";
     public float tiempoAntesDeTerminar = 2f;
     
     private string tagPersonaje = "Player";
@@ -149,6 +150,7 @@ public class SistemaCofresYPuerta : MonoBehaviour
         
         CambiarSpriteCofre(llaveCofre);
         ReproducirSonido(sonidoActivacionCofre);
+        GameManager.ObtenerLlave();
         
         Debug.Log("Cofre de llave abierto - Llave obtenida!");
     }
@@ -181,7 +183,7 @@ public class SistemaCofresYPuerta : MonoBehaviour
 
         if (!string.IsNullOrEmpty(nombreEscenaSiguiente))
         {
-            //SceneManager.LoadScene(nombreEscenaSiguiente);
+            SceneManager.LoadScene(nombreEscenaSiguiente);
         }
         else
         {

@@ -12,6 +12,10 @@ public class Caballero3Manager : MonoBehaviour
     private Animator caballero3_AnimController;
     private SpriteRenderer spriteRenderer;
     private bool mirandoDerecha = true;
+    
+    private bool debeMoverse = false;
+    private Vector3 destinoMovimiento;
+    private float velocidadMovimiento;
 
     void Start()
     {
@@ -26,7 +30,6 @@ public class Caballero3Manager : MonoBehaviour
         if (personaje == null) return;
 
         float distancia = Vector3.Distance(transform.position, personaje.transform.position);
-        float velocidadFinal = velocidadCaballero3 * Time.deltaTime;
 
         if (distancia <= 2f)
         {
@@ -35,16 +38,20 @@ public class Caballero3Manager : MonoBehaviour
             caballero3_AnimController.SetBool("caballero3ActivarAtacar", true);
             
             ActualizarDireccion();
+            
+            debeMoverse = false;
         }
         else if (distancia <= 4f)
         {
             // CAMINAR/PERSEGUIR
-            transform.position = Vector3.MoveTowards(transform.position, personaje.transform.position, velocidadFinal);
-
             ActualizarDireccion();
 
             caballero3_AnimController.SetBool("caballero3ActivarCaminar", true);
             caballero3_AnimController.SetBool("caballero3ActivarAtacar", false);
+            
+            destinoMovimiento = personaje.transform.position;
+            velocidadMovimiento = velocidadCaballero3 * Time.fixedDeltaTime;
+            debeMoverse = true;
         }
         else
         {
@@ -63,7 +70,18 @@ public class Caballero3Manager : MonoBehaviour
             
             caballero3_AnimController.SetBool("caballero3ActivarCaminar", true);
             caballero3_AnimController.SetBool("caballero3ActivarAtacar", false);
-            transform.position = Vector3.MoveTowards(transform.position, posicionInical, velocidadFinal);
+            
+            destinoMovimiento = posicionInical;
+            velocidadMovimiento = velocidadCaballero3 * Time.fixedDeltaTime;
+            debeMoverse = true;
+        }
+    }
+
+    void FixedUpdate()
+    {
+        if (debeMoverse)
+        {
+            transform.position = Vector3.MoveTowards(transform.position, destinoMovimiento, velocidadMovimiento);
         }
     }
 

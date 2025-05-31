@@ -4,12 +4,10 @@ using UnityEngine;
 
 public class AtaqueGorgon3 : MonoBehaviour
 {
-    [Header("Configuración de Ataque")]
     public float danoAtaque = 1.5f;
     public float rangoAtaque = 2.2f;
     public LayerMask capasJugador = 1 << 7;
     
-    [Header("Configuración de Frames")]
     public int frameInicioAtaque = 3;
     public int frameFinAtaque = 12;
     
@@ -20,6 +18,10 @@ public class AtaqueGorgon3 : MonoBehaviour
     private HashSet<GameObject> jugadoresGolpeados;
     private bool animacionAtaqueAnterior = false;
     private bool frameAtaqueActivo = false;
+    
+    // Variables para físicas
+    private bool aplicarKnockbackPendiente = false;
+    private GameObject jugadorParaKnockback;
 
     void Start()
     {
@@ -29,20 +31,27 @@ public class AtaqueGorgon3 : MonoBehaviour
 
     void Update()
     {
-        // Actualizar dirección
         GameObject jugador = GameObject.FindGameObjectWithTag("Player");
         if (jugador != null)
         {
             mirandoDerecha = jugador.transform.position.x > transform.position.x;
         }
 
-        // Detectar inicio de ataque
         DetectarInicioAtaque();
         
-        // Verificar frames de ataque si está atacando
         if (atacando)
         {
             VerificarFramesAtaque();
+        }
+    }
+
+    void FixedUpdate()
+    {
+        if (aplicarKnockbackPendiente && jugadorParaKnockback != null)
+        {
+            AplicarKnockBack(jugadorParaKnockback);
+            aplicarKnockbackPendiente = false;
+            jugadorParaKnockback = null;
         }
     }
 
@@ -137,7 +146,9 @@ public class AtaqueGorgon3 : MonoBehaviour
     void AplicarDamage(GameObject jugador)
     {
         GameManager.DanarJugador(jugador, danoAtaque);
-        AplicarKnockBack(jugador);
+        
+        jugadorParaKnockback = jugador;
+        aplicarKnockbackPendiente = true;
     }
 
     void AplicarKnockBack(GameObject jugador)

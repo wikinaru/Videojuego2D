@@ -18,6 +18,10 @@ public class AtaqueCaballero2 : MonoBehaviour
     private HashSet<GameObject> jugadoresGolpeados;
     private bool animacionAtaqueAnterior = false;
     private bool frameAtaqueActivo = false;
+    
+    // Variables para físicas
+    private bool aplicarKnockbackPendiente = false;
+    private GameObject jugadorParaKnockback;
 
     void Start()
     {
@@ -38,6 +42,16 @@ public class AtaqueCaballero2 : MonoBehaviour
         if (atacando)
         {
             VerificarFramesAtaque();
+        }
+    }
+
+    void FixedUpdate()
+    {
+        if (aplicarKnockbackPendiente && jugadorParaKnockback != null)
+        {
+            AplicarKnockBack(jugadorParaKnockback);
+            aplicarKnockbackPendiente = false;
+            jugadorParaKnockback = null;
         }
     }
 
@@ -132,7 +146,9 @@ public class AtaqueCaballero2 : MonoBehaviour
     void AplicarDamage(GameObject jugador)
     {
         GameManager.DanarJugador(jugador, danoAtaque);
-        AplicarKnockBack(jugador);
+        
+        jugadorParaKnockback = jugador;
+        aplicarKnockbackPendiente = true;
     }
 
     void AplicarKnockBack(GameObject jugador)

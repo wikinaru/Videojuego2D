@@ -4,34 +4,52 @@ using UnityEngine;
 
 public class GorgonManager : MonoBehaviour
 {
-    Vector3 posicionInical;
-    GameObject personaje;
-
     public float velocidadGorgon1 = 2f;
+    public float distanciaAtaque = 2f;
+    public float distanciaPerseguir = 3.5f;
+    
+    // Variables privadas
+    private Vector3 posicionInical;
+    private GameObject personaje;
     private Animator gorgon1_AnimController;
+    
+    // Variables para FixedUpdate
+    private float distanciaActual;
+    private bool deberiaMoverse;
+    private bool deberiaAtacar;
 
     void Start()
     {
         gorgon1_AnimController = GetComponent<Animator>();
         posicionInical = transform.position;
         personaje = GameObject.FindGameObjectWithTag("Player");
+        
+        if (personaje == null)
+        {
+            Debug.LogError("No se encontró el Player. Asegúrate de que tenga el tag 'Player'");
+        }
     }
 
     void Update()
     {
-        float distancia = Vector3.Distance(transform.position, personaje.transform.position);
-        float velocidadFinal = velocidadGorgon1 * Time.deltaTime;
-
-        if (distancia <= 2f)
+        if (personaje == null) return;
+        
+        distanciaActual = Vector3.Distance(transform.position, personaje.transform.position);
+        
+        if (distanciaActual <= distanciaAtaque)
         {
             // ATACAR
+            deberiaMoverse = false;
+            deberiaAtacar = true;
+            
             gorgon1_AnimController.SetBool("gorgon1ActivarCaminar", false);
             gorgon1_AnimController.SetBool("gorgon1ActivarAtacar", true);
         }
-        else if (distancia <= 3.5f)
+        else if (distanciaActual <= distanciaPerseguir)
         {
             // CAMINAR/PERSEGUIR
-            transform.position = Vector3.MoveTowards(transform.position, personaje.transform.position, velocidadFinal);
+            deberiaMoverse = true;
+            deberiaAtacar = false;
             
             gorgon1_AnimController.SetBool("gorgon1ActivarCaminar", true);
             gorgon1_AnimController.SetBool("gorgon1ActivarAtacar", false);
@@ -39,8 +57,22 @@ public class GorgonManager : MonoBehaviour
         else
         {
             // IDLE/VOLVER
+            deberiaMoverse = false;
+            deberiaAtacar = false;
+            
             gorgon1_AnimController.SetBool("gorgon1ActivarCaminar", false);
             gorgon1_AnimController.SetBool("gorgon1ActivarAtacar", false);
+        }
+    }
+
+    void FixedUpdate()
+    {
+        if (personaje == null) return;
+        
+        if (deberiaMoverse)
+        {
+            float velocidadFinal = velocidadGorgon1 * Time.fixedDeltaTime;
+            transform.position = Vector3.MoveTowards(transform.position, personaje.transform.position, velocidadFinal);
         }
     }
 }

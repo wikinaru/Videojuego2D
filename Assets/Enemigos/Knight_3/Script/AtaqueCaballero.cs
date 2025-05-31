@@ -19,8 +19,10 @@ public class AtaqueCaballero : MonoBehaviour
     private bool atacando = false;
     private bool mirandoDerecha = true;
     private Animator animatorController;
-    
     private bool animacionAtaqueAnterior = false;
+    
+    // Variables para el sistema de físicas
+    private bool actualizarPosicionHitboxPendiente = false;
 
     void Start()
     {
@@ -40,9 +42,21 @@ public class AtaqueCaballero : MonoBehaviour
             mirandoDerecha = jugador.transform.position.x > transform.position.x;
         }
 
-        ActualizarPosicionHitbox();
+        if (hitboxPrivada != null)
+        {
+            actualizarPosicionHitboxPendiente = true;
+        }
 
         DetectarInicioAtaque();
+    }
+
+    void FixedUpdate()
+    {
+        if (actualizarPosicionHitboxPendiente)
+        {
+            ActualizarPosicionHitbox();
+            actualizarPosicionHitboxPendiente = false;
+        }
     }
 
     void DetectarInicioAtaque()
@@ -138,6 +152,7 @@ public class AtaqueCaballero : MonoBehaviour
         }
 
         atacando = false;
+        actualizarPosicionHitboxPendiente = false;
     }
 
     public bool EstaAtacando()

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
@@ -24,11 +25,25 @@ public class GameManager : MonoBehaviour
     public static float barraVida;
     public static bool morir = false;
     
+    // UI de Corazones
+    GameObject vida0, vida1, vida2, vida3;
+    Image imagenVida0, imagenVida1, imagenVida2, imagenVida3;
+    
+    public Sprite corazonEntero;
+    public Sprite corazonMedio;
+    public Sprite corazonVacio;
+    
+    // UI de Llave - NUEVO
+    public static bool llaveObtenida = false;
+    private Image imagenLlaveUI;
+    
     //Configurar Enemigos
     public static Dictionary<string, ConfiguracionEnemigo> enemigos;
     
     public static GameManager Instance;
     private Animator animator;
+    
+    private bool actualizarUIPendiente = false;
     
     void Awake()
     {
@@ -48,14 +63,83 @@ public class GameManager : MonoBehaviour
     {
         barraVida = 10f;
         morir = false;
+        llaveObtenida = false;
+
+        vida0 = GameObject.Find("Vida0");
+        vida1 = GameObject.Find("Vida1");
+        vida2 = GameObject.Find("Vida2");
+        vida3 = GameObject.Find("Vida3");
+
+        if (vida0 != null) imagenVida0 = vida0.GetComponent<Image>();
+        if (vida1 != null) imagenVida1 = vida1.GetComponent<Image>();
+        if (vida2 != null) imagenVida2 = vida2.GetComponent<Image>();
+        if (vida3 != null) imagenVida3 = vida3.GetComponent<Image>();
+
+        GameObject llaveUIObj = GameObject.Find("Llave");
+        if (llaveUIObj != null)
+        {
+            imagenLlaveUI = llaveUIObj.GetComponent<Image>();
+        }
 
         enemigos = new Dictionary<string, ConfiguracionEnemigo>();
-
         enemigos["Gorgon1"] = new ConfiguracionEnemigo("Gorgon1", 5f);
         enemigos["Gorgon2"] = new ConfiguracionEnemigo("Gorgon2", 7f);
         enemigos["Gorgon3"] = new ConfiguracionEnemigo("Gorgon3", 7.5f);
         enemigos["Caballero2"] = new ConfiguracionEnemigo("Caballero2", 9f);
         enemigos["Caballero3"] = new ConfiguracionEnemigo("Caballero3", 10.5f);
+        
+        ActualizarUICorazones();
+        ActualizarUILlave();
+    }
+
+    void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            ReiniciarSistemaVidas();
+        }
+        
+        if (actualizarUIPendiente)
+        {
+            actualizarUIPendiente = false;
+            ActualizarUICorazones();
+            ActualizarUILlave();
+        }
+    }
+
+    void ActualizarUICorazones()
+    {
+        ActualizarCorazon(imagenVida3, 7.5f, 10f);
+        ActualizarCorazon(imagenVida2, 5f, 7.5f);
+        ActualizarCorazon(imagenVida1, 2.5f, 5f);
+        ActualizarCorazon(imagenVida0, 0f, 2.5f);
+    }
+    
+    // NUEVO MÉTODO PARA ACTUALIZAR UI DE LLAVE
+    void ActualizarUILlave()
+    {
+        if (imagenLlaveUI != null)
+        {
+            imagenLlaveUI.gameObject.SetActive(llaveObtenida);
+        }
+    }
+    
+    void ActualizarCorazon(Image imagenCorazon, float vidaMinima, float vidaMaxima)
+    {
+        if (imagenCorazon == null) return;
+        
+        if (barraVida <= vidaMinima)
+        {
+            imagenCorazon.sprite = corazonVacio;
+        }
+        else if (barraVida >= vidaMaxima)
+        {
+            imagenCorazon.sprite = corazonEntero;
+        }
+        else
+        {
+            imagenCorazon.sprite = corazonMedio;
+        }
     }
 
     // ===== MÉTODOS PARA EL JUGADOR =====
@@ -71,12 +155,16 @@ public class GameManager : MonoBehaviour
         }
         
         Instance.OnJugadorDanado();
+        
+        Instance.actualizarUIPendiente = true;
     }
     
     public static void CurarJugador(float curacion)
     {
         barraVida += curacion;
         if (barraVida > 10f) barraVida = 10f;
+        
+        Instance.actualizarUIPendiente = true;
     }
 
     public static void DanarJugador(GameObject jugador, float damage)
@@ -87,6 +175,19 @@ public class GameManager : MonoBehaviour
         {
             Instance.StartCoroutine(Instance.EfectoDanoJugador(jugador));
         }
+    }
+
+    // NUEVOS MÉTODOS PARA LA LLAVE
+    public static void ObtenerLlave()
+    {
+        llaveObtenida = true;
+        Instance.actualizarUIPendiente = true;
+        Debug.Log("Llave obtenida! UI actualizada.");
+    }
+    
+    public static bool TieneLlave()
+    {
+        return llaveObtenida;
     }
 
     IEnumerator EfectoDanoJugador(GameObject jugador)
@@ -108,7 +209,8 @@ public class GameManager : MonoBehaviour
     
     void OnJugadorMuere()
     {
-        animator.SetBool("activarMuerte", true);
+        if (animator != null)
+            animator.SetBool("activarMuerte", true);
         Debug.Log("¡El jugador ha muerto!");
     }
 
@@ -200,11 +302,14 @@ public class GameManager : MonoBehaviour
     {
         barraVida = 10f;
         morir = false;
+        llaveObtenida = false; // REINICIAR LLAVE TAMBIÉN
 
         foreach (var enemigo in enemigos.Values)
         {
             enemigo.vidaActual = enemigo.vidaMaxima;
         }
+
+        Instance.actualizarUIPendiente = true;
     }
     
     public static void ConfigurarVidaEnemigo(string tipo, float nuevaVida)
@@ -213,14 +318,6 @@ public class GameManager : MonoBehaviour
         {
             enemigos[tipo].vidaMaxima = nuevaVida;
             enemigos[tipo].vidaActual = nuevaVida;
-        }
-    }
-
-    void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            ReiniciarSistemaVidas();
         }
     }
 }

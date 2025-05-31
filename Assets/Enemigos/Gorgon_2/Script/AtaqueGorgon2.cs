@@ -18,6 +18,10 @@ public class AtaqueGorgon2 : MonoBehaviour
     private HashSet<GameObject> jugadoresGolpeados;
     private bool animacionAtaqueAnterior = false;
     private bool frameAtaqueActivo = false;
+    
+    // Variables para físicas
+    private bool aplicarKnockbackPendiente = false;
+    private GameObject jugadorParaKnockback;
 
     void Start()
     {
@@ -27,7 +31,6 @@ public class AtaqueGorgon2 : MonoBehaviour
 
     void Update()
     {
-        // Actualizar dirección
         GameObject jugador = GameObject.FindGameObjectWithTag("Player");
         if (jugador != null)
         {
@@ -39,6 +42,16 @@ public class AtaqueGorgon2 : MonoBehaviour
         if (atacando)
         {
             VerificarFramesAtaque();
+        }
+    }
+
+    void FixedUpdate()
+    {
+        if (aplicarKnockbackPendiente && jugadorParaKnockback != null)
+        {
+            AplicarKnockBack(jugadorParaKnockback);
+            aplicarKnockbackPendiente = false;
+            jugadorParaKnockback = null;
         }
     }
 
@@ -68,7 +81,6 @@ public class AtaqueGorgon2 : MonoBehaviour
         {
             AnimatorStateInfo stateInfo = animatorController.GetCurrentAnimatorStateInfo(0);
             
-            // Verificar si estamos en el estado de ataque
             if (stateInfo.IsName("ataqueGorgon2Anim") || stateInfo.IsTag("Attack"))
             {
                 float frameActual = stateInfo.normalizedTime * GetFramesTotales();
@@ -130,7 +142,9 @@ public class AtaqueGorgon2 : MonoBehaviour
     void AplicarDamage(GameObject jugador)
     {
         GameManager.DanarJugador(jugador, danoAtaque);
-        AplicarKnockBack(jugador);
+        
+        jugadorParaKnockback = jugador;
+        aplicarKnockbackPendiente = true;
     }
 
     void AplicarKnockBack(GameObject jugador)
