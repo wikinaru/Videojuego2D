@@ -669,11 +669,20 @@ MonoBehaviour:
   m_GameObject: {fileID: 100071643}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bf85e0f8256af4a449afaa3f0a48e91d, type: 3}
+  m_Script: {fileID: 11500000, guid: 82a8fe7e5f4a8f04083b2b037a790740, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  saltoCofre: {fileID: 100071643}
+  llaveCofre: {fileID: 922777370}
+  puerta: {fileID: 1666419486}
   spriteCofrecerrado: {fileID: 21300000, guid: 0eb26ee55cfd4b74b9dd1adbd8ce8ebd, type: 3}
   spriteCofreabierto: {fileID: 21300000, guid: 34776462f15cb4c4fac4c3f1fd2207e0, type: 3}
+  sonidoActivacionCofre: {fileID: 0}
+  spritePuertaCerrada: {fileID: 21300000, guid: 2e63e55401fb1ba439be50989e8f1432, type: 3}
+  spritePuertaAbierta: {fileID: 21300000, guid: c0d08bdc57eaef44687c1752d42c77e1, type: 3}
+  sonidoAbrirPuerta: {fileID: 0}
+  nombreEscenaSiguiente: MenuPrincipal
+  tiempoAntesDeTerminar: 2
 --- !u!4 &290475792 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8273650412776259952, guid: 0aa7e2d7f84d2f94995b4efcaa2dcc3d, type: 3}
@@ -954,6 +963,7 @@ GameObject:
   - component: {fileID: 922777372}
   - component: {fileID: 922777371}
   - component: {fileID: 922777373}
+  - component: {fileID: 922777374}
   m_Layer: 0
   m_Name: llave_cofre
   m_TagString: Untagged
@@ -1073,6 +1083,29 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 0.70731735, y: 0.42152643}
   m_EdgeRadius: 0
+--- !u!114 &922777374
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 922777370}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 82a8fe7e5f4a8f04083b2b037a790740, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  saltoCofre: {fileID: 100071643}
+  llaveCofre: {fileID: 922777370}
+  puerta: {fileID: 1666419486}
+  spriteCofrecerrado: {fileID: 21300000, guid: 0eb26ee55cfd4b74b9dd1adbd8ce8ebd, type: 3}
+  spriteCofreabierto: {fileID: 21300000, guid: 34776462f15cb4c4fac4c3f1fd2207e0, type: 3}
+  sonidoActivacionCofre: {fileID: 0}
+  spritePuertaCerrada: {fileID: 21300000, guid: 2e63e55401fb1ba439be50989e8f1432, type: 3}
+  spritePuertaAbierta: {fileID: 21300000, guid: c0d08bdc57eaef44687c1752d42c77e1, type: 3}
+  sonidoAbrirPuerta: {fileID: 0}
+  nombreEscenaSiguiente: MenuPrincipal
+  tiempoAntesDeTerminar: 2
 --- !u!1001 &1038216798
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3059,6 +3092,7 @@ GameObject:
   - component: {fileID: 1666419488}
   - component: {fileID: 1666419487}
   - component: {fileID: 1666419489}
+  - component: {fileID: 1666419490}
   m_Layer: 0
   m_Name: puerta
   m_TagString: Untagged
@@ -3178,6 +3212,29 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 0.92099, y: 1.3252475}
   m_EdgeRadius: 0
+--- !u!114 &1666419490
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1666419486}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 82a8fe7e5f4a8f04083b2b037a790740, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  saltoCofre: {fileID: 100071643}
+  llaveCofre: {fileID: 922777370}
+  puerta: {fileID: 1666419486}
+  spriteCofrecerrado: {fileID: 21300000, guid: 0eb26ee55cfd4b74b9dd1adbd8ce8ebd, type: 3}
+  spriteCofreabierto: {fileID: 21300000, guid: 34776462f15cb4c4fac4c3f1fd2207e0, type: 3}
+  sonidoActivacionCofre: {fileID: 0}
+  spritePuertaCerrada: {fileID: 21300000, guid: 2e63e55401fb1ba439be50989e8f1432, type: 3}
+  spritePuertaAbierta: {fileID: 21300000, guid: c0d08bdc57eaef44687c1752d42c77e1, type: 3}
+  sonidoAbrirPuerta: {fileID: 0}
+  nombreEscenaSiguiente: MenuPrincipal
+  tiempoAntesDeTerminar: 2
 --- !u!4 &1795344704 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 112836249959907057, guid: d127b5fbb7398ea44b24f62954a661f8, type: 3}
