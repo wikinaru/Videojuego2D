@@ -31,6 +31,13 @@ public class MovPersonaje : MonoBehaviour
     private bool puedeMoverse = true;
     private bool dobleSaltoActivado = false;
 
+    private bool reproducirSonidoMovimiento = false;
+    private float tiempoUltimoSonidoMovimiento = 0f;
+    private float intervaloSonidoMovimiento = 0.4f;
+    
+    private float tiempoUltimoSalto = 0f;
+    private float tiempoSilencioTrasSalto = 0.3f;
+
     void Awake()
     {
         respawn = GameObject.Find("Respawn");
@@ -58,17 +65,13 @@ public class MovPersonaje : MonoBehaviour
 
         ManejarDireccion();
         ManejarAnimaciones();
+        ManejarSonidoMovimiento();
         
         DetectarSuelo();
         
         if (transform.position.y <= -10)
         {
             Respawnear();
-        }
-
-        if (GameManager.barraVida <= 0)
-        {
-            GameManager.morir = true;
         }
     }
 
@@ -111,7 +114,7 @@ public class MovPersonaje : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.A) && Input.GetKeyDown(KeyCode.D))
         {
-            // No hacer nada si ambas teclas se presionan
+            
         }
         else if (moverse < 0)
         {
@@ -126,6 +129,48 @@ public class MovPersonaje : MonoBehaviour
     private void ManejarAnimaciones()
     {
         animatorController.SetBool("activarCorrer", moverse != 0);
+    }
+
+    private void ManejarSonidoMovimiento()
+    {
+        bool estaMoviendose = (moverse != 0);
+        bool estaEnSuelo = suelo;
+        bool noEstaAtacando = !animatorController.GetBool("atacando");
+        bool haPasadoTiempoSuficienteTrasSalto = (Time.time - tiempoUltimoSalto) >= tiempoSilencioTrasSalto;
+        bool haPasadoTiempoEntreSONIDOS = (Time.time - tiempoUltimoSonidoMovimiento) >= intervaloSonidoMovimiento;
+        
+        bool debeReproducirSonido = estaMoviendose && estaEnSuelo && noEstaAtacando && 
+                                   haPasadoTiempoSuficienteTrasSalto && haPasadoTiempoEntreSONIDOS;
+        
+        if (debeReproducirSonido)
+        {
+            ReproducirSonidoMovimiento();
+            tiempoUltimoSonidoMovimiento = Time.time;
+        }
+    }
+
+    private void ReproducirSonidoMovimiento()
+    {
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.ReproducirEfectoMovimientoJugador();
+        }
+        else
+        {
+            Debug.LogWarning("AudioManager no encontrado. No se puede reproducir el sonido de movimiento.");
+        }
+    }
+
+    private void ReproducirSonidoSalto()
+    {
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.ReproducirEfectoSaltoJugador();
+        }
+        else
+        {
+            Debug.LogWarning("AudioManager no encontrado. No se puede reproducir el sonido de salto.");
+        }
     }
 
     private void DetectarSuelo()
@@ -150,6 +195,7 @@ public class MovPersonaje : MonoBehaviour
         {
             saltosRestantes = saltosTotales;
             animatorController.SetBool("activarSalto", false);
+            
             Debug.Log("Aterrizó - Saltos restaurados: " + saltosRestantes);
         }
     }
@@ -171,6 +217,9 @@ public class MovPersonaje : MonoBehaviour
             saltosRestantes--;
             animatorController.SetBool("activarSalto", true);
             
+            tiempoUltimoSalto = Time.time;
+            ReproducirSonidoSalto();
+            
             inputSalto = false;
             inputSaltoBuffer = false;
             timerBufferSalto = 0;
@@ -183,7 +232,6 @@ public class MovPersonaje : MonoBehaviour
         }
     }
 
-    // Método centralizado para cambiar dirección
     private void CambiarDireccion(bool derecha)
     {
         if (MirandoDerecha == derecha) return;
@@ -227,7 +275,7 @@ public class MovPersonaje : MonoBehaviour
     public void Respawnear()
     {
         Debug.Log("Vida antes: " + GameManager.barraVida);
-        GameManager.barraVida = GameManager.barraVida - 2;
+        GameManager.DamageDeJugador(2f);
         Debug.Log("Vida después: " + GameManager.barraVida);
         transform.position = respawn.transform.position;
 
@@ -237,7 +285,6 @@ public class MovPersonaje : MonoBehaviour
         }
     }
 
-    // Método para debug visual en el editor
     void OnDrawGizmosSelected()
     {
         Gizmos.color = suelo ? Color.green : Color.red;

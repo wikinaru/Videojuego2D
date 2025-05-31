@@ -5,13 +5,14 @@ using UnityEngine.SceneManagement;
 
 public class Inicio : MonoBehaviour
 {
-    // Start is called before the first frame update
+    GameObject ajustes;
+
     void Start()
     {
-
+        ajustes = GameObject.Find("PanelAjustes");
+        ajustes.SetActive(false);
     }
 
-    // Update is called once per frame
     void Update()
     {
 
@@ -20,6 +21,16 @@ public class Inicio : MonoBehaviour
     public void EmpezarJuego()
     {
         SceneManager.LoadScene("1JuegoScene");
+    }
+
+    public void AbrirAjustes()
+    {
+        ajustes.SetActive(true);
+    }
+
+    public void SalirAjustes()
+    {
+        ajustes.SetActive(false);
     }
 
     public void SalirJuego()

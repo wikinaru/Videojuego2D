@@ -22,6 +22,9 @@ public class Gorgon2Manager : MonoBehaviour
     private Vector3 objetivoMovimiento;
     private bool debeMoverse = false;
     
+    // Variables para audio
+    private bool estabaCaminando = false;
+    
     void Start()
     {
         gorgon2_AnimController = GetComponent<Animator>();
@@ -64,6 +67,11 @@ public class Gorgon2Manager : MonoBehaviour
             
             ActualizarDireccion();
             debeMoverse = false;
+            
+            if (estabaCaminando)
+            {
+                estabaCaminando = false;
+            }
         }
         else if (distancia <= distanciaDeteccion)
         {
@@ -77,6 +85,15 @@ public class Gorgon2Manager : MonoBehaviour
 
             gorgon2_AnimController.SetBool("gorgon2ActivarCaminar", true);
             gorgon2_AnimController.SetBool("gorgon2ActivarAtacar", false);
+            
+            if (!estabaCaminando)
+            {
+                if (AudioManager.Instance != null)
+                {
+                    AudioManager.Instance.ReproducirEfectoMovimientoGorgons();
+                }
+                estabaCaminando = true;
+            }
         }
         else
         {
@@ -100,6 +117,15 @@ public class Gorgon2Manager : MonoBehaviour
             
             gorgon2_AnimController.SetBool("gorgon2ActivarCaminar", true);
             gorgon2_AnimController.SetBool("gorgon2ActivarAtacar", false);
+            
+            if (!estabaCaminando)
+            {
+                if (AudioManager.Instance != null)
+                {
+                    AudioManager.Instance.ReproducirEfectoMovimientoGorgons();
+                }
+                estabaCaminando = true;
+            }
         }
     }
 
@@ -120,6 +146,11 @@ public class Gorgon2Manager : MonoBehaviour
                 {
                     debeMoverse = false;
                     CambiarEstado(EstadoMovimiento.Idle);
+                    
+                    if (estabaCaminando)
+                    {
+                        estabaCaminando = false;
+                    }
                 }
                 break;
         }
@@ -129,6 +160,15 @@ public class Gorgon2Manager : MonoBehaviour
     {
         if (estadoActual != nuevoEstado)
         {
+            if ((estadoActual == EstadoMovimiento.Persiguiendo || estadoActual == EstadoMovimiento.VolviendoAInicio) 
+                && (nuevoEstado == EstadoMovimiento.Idle || nuevoEstado == EstadoMovimiento.Atacando))
+            {
+                if (estabaCaminando)
+                {
+                    estabaCaminando = false;
+                }
+            }
+            
             estadoActual = nuevoEstado;
         }
     }

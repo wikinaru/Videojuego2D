@@ -17,6 +17,9 @@ public class GorgonManager : MonoBehaviour
     private float distanciaActual;
     private bool deberiaMoverse;
     private bool deberiaAtacar;
+    
+    // Variables para audio
+    private bool estabaCaminando = false;
 
     void Start()
     {
@@ -44,6 +47,11 @@ public class GorgonManager : MonoBehaviour
             
             gorgon1_AnimController.SetBool("gorgon1ActivarCaminar", false);
             gorgon1_AnimController.SetBool("gorgon1ActivarAtacar", true);
+            
+            if (estabaCaminando)
+            {
+                estabaCaminando = false;
+            }
         }
         else if (distanciaActual <= distanciaPerseguir)
         {
@@ -53,6 +61,15 @@ public class GorgonManager : MonoBehaviour
             
             gorgon1_AnimController.SetBool("gorgon1ActivarCaminar", true);
             gorgon1_AnimController.SetBool("gorgon1ActivarAtacar", false);
+            
+            if (!estabaCaminando)
+            {
+                if (AudioManager.Instance != null)
+                {
+                    AudioManager.Instance.ReproducirEfectoMovimientoGorgons();
+                }
+                estabaCaminando = true;
+            }
         }
         else
         {
@@ -62,6 +79,11 @@ public class GorgonManager : MonoBehaviour
             
             gorgon1_AnimController.SetBool("gorgon1ActivarCaminar", false);
             gorgon1_AnimController.SetBool("gorgon1ActivarAtacar", false);
+            
+            if (estabaCaminando)
+            {
+                estabaCaminando = false;
+            }
         }
     }
 

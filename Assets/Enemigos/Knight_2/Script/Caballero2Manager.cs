@@ -23,6 +23,9 @@ public class Caballero2Manager : MonoBehaviour
     private EstadoMovimiento estadoActual = EstadoMovimiento.Idle;
     private Vector3 objetivoMovimiento;
     private bool debeMoverse = false;
+    
+    // Variables para audio
+    private bool estabaCaminando = false;
 
     void Start()
     {
@@ -64,6 +67,11 @@ public class Caballero2Manager : MonoBehaviour
             ActualizarDireccion();
             debeMoverse = false;
             
+            if (estabaCaminando)
+            {
+                estabaCaminando = false;
+            }
+            
             if (PuedeAtacar())
             {
                 caballero2_AnimController.SetBool("caballero2ActivarAtacar", true);
@@ -87,6 +95,15 @@ public class Caballero2Manager : MonoBehaviour
 
             ActualizarDireccion();
 
+            if (!estabaCaminando)
+            {
+                if (AudioManager.Instance != null)
+                {
+                    AudioManager.Instance.ReproducirEfectoMovimientoCaballeros();
+                }
+                estabaCaminando = true;
+            }
+
             caballero2_AnimController.SetBool("caballero2ActivarAtacar", false);
         }
         else
@@ -109,6 +126,15 @@ public class Caballero2Manager : MonoBehaviour
             
             ActualizarFlip();
             
+            if (!estabaCaminando)
+            {
+                if (AudioManager.Instance != null)
+                {
+                    AudioManager.Instance.ReproducirEfectoMovimientoCaballeros();
+                }
+                estabaCaminando = true;
+            }
+            
             caballero2_AnimController.SetBool("caballero2ActivarAtacar", false);
         }
     }
@@ -130,6 +156,11 @@ public class Caballero2Manager : MonoBehaviour
                 {
                     debeMoverse = false;
                     CambiarEstado(EstadoMovimiento.Idle);
+                    
+                    if (estabaCaminando)
+                    {
+                        estabaCaminando = false;
+                    }
                 }
                 break;
         }
@@ -139,6 +170,15 @@ public class Caballero2Manager : MonoBehaviour
     {
         if (estadoActual != nuevoEstado)
         {
+            if ((estadoActual == EstadoMovimiento.Persiguiendo || estadoActual == EstadoMovimiento.VolviendoAInicio) &&
+                (nuevoEstado == EstadoMovimiento.Idle || nuevoEstado == EstadoMovimiento.Atacando))
+            {
+                if (estabaCaminando)
+                {
+                    estabaCaminando = false;
+                }
+            }
+            
             estadoActual = nuevoEstado;
         }
     }

@@ -23,6 +23,9 @@ public class Gorgon3Manager : MonoBehaviour
     private EstadoMovimiento estadoActual = EstadoMovimiento.Idle;
     private Vector3 objetivoMovimiento;
     private bool debeMoverse = false;
+    
+    // Variables para audio
+    private bool estabaCaminando = false;
 
     void Start()
     {
@@ -76,6 +79,11 @@ public class Gorgon3Manager : MonoBehaviour
                     gorgon3_AnimController.SetBool("gorgon3ActivarAtacar", false);
                 }
             }
+            
+            if (estabaCaminando)
+            {
+                estabaCaminando = false;
+            }
         }
         else if (distancia <= distanciaDeteccion)
         {
@@ -88,6 +96,15 @@ public class Gorgon3Manager : MonoBehaviour
             ActualizarDireccion();
 
             gorgon3_AnimController.SetBool("gorgon3ActivarAtacar", false);
+            
+            if (!estabaCaminando)
+            {
+                if (AudioManager.Instance != null)
+                {
+                    AudioManager.Instance.ReproducirEfectoMovimientoGorgons();
+                }
+                estabaCaminando = true;
+            }
         }
         else
         {
@@ -110,6 +127,15 @@ public class Gorgon3Manager : MonoBehaviour
             ActualizarFlip();
             
             gorgon3_AnimController.SetBool("gorgon3ActivarAtacar", false);
+            
+            if (!estabaCaminando)
+            {
+                if (AudioManager.Instance != null)
+                {
+                    AudioManager.Instance.ReproducirEfectoMovimientoGorgons();
+                }
+                estabaCaminando = true;
+            }
         }
     }
 
@@ -130,6 +156,11 @@ public class Gorgon3Manager : MonoBehaviour
                 {
                     debeMoverse = false;
                     CambiarEstado(EstadoMovimiento.Idle);
+                    
+                    if (estabaCaminando)
+                    {
+                        estabaCaminando = false;
+                    }
                 }
                 break;
         }
@@ -139,6 +170,15 @@ public class Gorgon3Manager : MonoBehaviour
     {
         if (estadoActual != nuevoEstado)
         {
+            if ((estadoActual == EstadoMovimiento.Persiguiendo || estadoActual == EstadoMovimiento.VolviendoAInicio) 
+                && (nuevoEstado == EstadoMovimiento.Idle || nuevoEstado == EstadoMovimiento.Atacando))
+            {
+                if (estabaCaminando)
+                {
+                    estabaCaminando = false;
+                }
+            }
+            
             estadoActual = nuevoEstado;
         }
     }

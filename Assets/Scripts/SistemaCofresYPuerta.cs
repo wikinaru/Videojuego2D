@@ -11,11 +11,9 @@ public class SistemaCofresYPuerta : MonoBehaviour
     
     public Sprite spriteCofrecerrado;
     public Sprite spriteCofreabierto;
-    public AudioClip sonidoActivacionCofre;
 
     public Sprite spritePuertaCerrada;
     public Sprite spritePuertaAbierta;
-    public AudioClip sonidoAbrirPuerta;
     
     public string nombreEscenaSiguiente = "2FinalScene";
     public float tiempoAntesDeTerminar = 2f;
@@ -136,7 +134,11 @@ public class SistemaCofresYPuerta : MonoBehaviour
         }
         
         CambiarSpriteCofre(saltoCofre);
-        ReproducirSonido(sonidoActivacionCofre);
+        
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.ReproducirEfectoCofre();
+        }
         
         Debug.Log("Cofre de salto abierto - Doble salto desbloqueado!");
     }
@@ -149,7 +151,12 @@ public class SistemaCofresYPuerta : MonoBehaviour
         llaveObtenida = true;
         
         CambiarSpriteCofre(llaveCofre);
-        ReproducirSonido(sonidoActivacionCofre);
+        
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.ReproducirEfectoCofre();
+        }
+        
         GameManager.ObtenerLlave();
         
         Debug.Log("Cofre de llave abierto - Llave obtenida!");
@@ -172,7 +179,11 @@ public class SistemaCofresYPuerta : MonoBehaviour
         Debug.Log("¡Puerta abierta! Terminando demo...");
 
         CambiarSpritePuerta();
-        ReproducirSonido(sonidoAbrirPuerta);
+        
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.ReproducirEfectoPuerta();
+        }
 
         StartCoroutine(TerminarDemo());
     }
@@ -181,9 +192,9 @@ public class SistemaCofresYPuerta : MonoBehaviour
     {
         yield return new WaitForSeconds(tiempoAntesDeTerminar);
 
-        if (!string.IsNullOrEmpty(nombreEscenaSiguiente))
+        if (!string.IsNullOrEmpty("2FinalScene"))
         {
-            SceneManager.LoadScene(nombreEscenaSiguiente);
+            SceneManager.LoadScene("2FinalScene");
         }
         else
         {
@@ -220,14 +231,6 @@ public class SistemaCofresYPuerta : MonoBehaviour
         else if (spritePuertaAbierta == null)
         {
             Debug.LogWarning("SistemaCofresYPuerta: No se asignó sprite de puerta abierta");
-        }
-    }
-    
-    private void ReproducirSonido(AudioClip sonido)
-    {
-        if (sonido != null)
-        {
-            AudioSource.PlayClipAtPoint(sonido, Camera.main.transform.position);
         }
     }
     

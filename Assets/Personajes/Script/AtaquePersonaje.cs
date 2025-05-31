@@ -81,6 +81,11 @@ public class AtaquePersonaje : MonoBehaviour
     {
         atacando = true;
         
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.ReproducirEfectoAtaqueJugador();
+        }
+        
         CrearHitbox();
         animatorController.SetBool("activarAtacar", true);
         

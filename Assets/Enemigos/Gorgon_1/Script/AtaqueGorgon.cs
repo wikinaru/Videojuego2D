@@ -114,6 +114,12 @@ public class AtaqueGorgon : MonoBehaviour
         if (!atacando)
         {
             Debug.Log("¡Iniciando ataque del Gorgon!");
+            
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.ReproducirEfectoAtaqueGorgons();
+            }
+            
             StartCoroutine(EjecutarAtaque());
         }
     }

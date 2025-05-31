@@ -21,11 +21,9 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    //Vida Jugador
     public static float barraVida;
     public static bool morir = false;
     
-    // UI de Corazones
     GameObject vida0, vida1, vida2, vida3;
     Image imagenVida0, imagenVida1, imagenVida2, imagenVida3;
     
@@ -33,7 +31,6 @@ public class GameManager : MonoBehaviour
     public Sprite corazonMedio;
     public Sprite corazonVacio;
     
-    // UI de Llave - NUEVO
     public static bool llaveObtenida = false;
     private Image imagenLlaveUI;
     
@@ -44,6 +41,17 @@ public class GameManager : MonoBehaviour
     private Animator animator;
     
     private bool actualizarUIPendiente = false;
+    private bool muerteYaProcesada = false;
+    
+    // Variables para manejo de sonido idle de Gorgons
+    private float tiempoUltimoSonidoIdleGorgons = 0f;
+    private float intervalSonidoIdleGorgons = 4f;
+    private float probabilidadSonidoIdleGorgons = 0.25f;
+    
+    // Variables para manejo de sonido idle de Caballeros
+    private float tiempoUltimoSonidoIdleCaballeros = 0f;
+    private float intervalSonidoIdleCaballeros = 5f;
+    private float probabilidadSonidoIdleCaballeros = 0.3f;
     
     void Awake()
     {
@@ -64,6 +72,7 @@ public class GameManager : MonoBehaviour
         barraVida = 10f;
         morir = false;
         llaveObtenida = false;
+        muerteYaProcesada = false;
 
         vida0 = GameObject.Find("Vida0");
         vida1 = GameObject.Find("Vida1");
@@ -81,12 +90,21 @@ public class GameManager : MonoBehaviour
             imagenLlaveUI = llaveUIObj.GetComponent<Image>();
         }
 
+        GameObject jugador = GameObject.FindGameObjectWithTag("Player");
+        if (jugador != null)
+        {
+            animator = jugador.GetComponent<Animator>();
+        }
+
         enemigos = new Dictionary<string, ConfiguracionEnemigo>();
         enemigos["Gorgon1"] = new ConfiguracionEnemigo("Gorgon1", 5f);
         enemigos["Gorgon2"] = new ConfiguracionEnemigo("Gorgon2", 7f);
         enemigos["Gorgon3"] = new ConfiguracionEnemigo("Gorgon3", 7.5f);
         enemigos["Caballero2"] = new ConfiguracionEnemigo("Caballero2", 9f);
         enemigos["Caballero3"] = new ConfiguracionEnemigo("Caballero3", 10.5f);
+        
+        tiempoUltimoSonidoIdleGorgons = Time.time;
+        tiempoUltimoSonidoIdleCaballeros = Time.time;
         
         ActualizarUICorazones();
         ActualizarUILlave();
@@ -105,6 +123,65 @@ public class GameManager : MonoBehaviour
             ActualizarUICorazones();
             ActualizarUILlave();
         }
+        
+        ManejarSonidoIdleGorgons();
+        ManejarSonidoIdleCaballeros();
+    }
+    
+    void ManejarSonidoIdleGorgons()
+    {
+        if (HayGorgonsVivos() && Time.time - tiempoUltimoSonidoIdleGorgons >= intervalSonidoIdleGorgons)
+        {
+            if (Random.Range(0f, 1f) <= probabilidadSonidoIdleGorgons)
+            {
+                if (AudioManager.Instance != null)
+                {
+                    AudioManager.Instance.ReproducirEfectoGorgons();
+                }
+            }
+            tiempoUltimoSonidoIdleGorgons = Time.time;
+        }
+    }
+    
+    void ManejarSonidoIdleCaballeros()
+    {
+        if (HayCaballerosVivos() && Time.time - tiempoUltimoSonidoIdleCaballeros >= intervalSonidoIdleCaballeros)
+        {
+            if (Random.Range(0f, 1f) <= probabilidadSonidoIdleCaballeros)
+            {
+                if (AudioManager.Instance != null)
+                {
+                    AudioManager.Instance.ReproducirEfectoCaballeros();
+                }
+            }
+            tiempoUltimoSonidoIdleCaballeros = Time.time;
+        }
+    }
+    
+    bool HayGorgonsVivos()
+    {
+        GameObject[] gorgons = GameObject.FindGameObjectsWithTag("Enemigo");
+        foreach (GameObject enemigo in gorgons)
+        {
+            if (enemigo.name.Contains("Gorgon"))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    bool HayCaballerosVivos()
+    {
+        GameObject[] caballeros = GameObject.FindGameObjectsWithTag("Enemigo");
+        foreach (GameObject enemigo in caballeros)
+        {
+            if (enemigo.name.Contains("Caballero"))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     void ActualizarUICorazones()
@@ -115,7 +192,6 @@ public class GameManager : MonoBehaviour
         ActualizarCorazon(imagenVida0, 0f, 2.5f);
     }
     
-    // NUEVO MÉTODO PARA ACTUALIZAR UI DE LLAVE
     void ActualizarUILlave()
     {
         if (imagenLlaveUI != null)
@@ -150,11 +226,17 @@ public class GameManager : MonoBehaviour
         if (barraVida <= 0)
         {
             barraVida = 0;
-            morir = true;
-            Instance.OnJugadorMuere();
+            if (!Instance.muerteYaProcesada)
+            {
+                morir = true;
+                Instance.muerteYaProcesada = true;
+                Instance.OnJugadorMuere();
+            }
         }
-        
-        Instance.OnJugadorDanado();
+        else
+        {
+            Instance.OnJugadorDanado();
+        }
         
         Instance.actualizarUIPendiente = true;
     }
@@ -163,6 +245,12 @@ public class GameManager : MonoBehaviour
     {
         barraVida += curacion;
         if (barraVida > 10f) barraVida = 10f;
+        
+        if (barraVida > 0 && morir)
+        {
+            morir = false;
+            Instance.muerteYaProcesada = false;
+        }
         
         Instance.actualizarUIPendiente = true;
     }
@@ -177,7 +265,6 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // NUEVOS MÉTODOS PARA LA LLAVE
     public static void ObtenerLlave()
     {
         llaveObtenida = true;
@@ -211,6 +298,12 @@ public class GameManager : MonoBehaviour
     {
         if (animator != null)
             animator.SetBool("activarMuerte", true);
+            
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.ReproducirEfectoMuerteJugador();
+        }
+        
         Debug.Log("¡El jugador ha muerto!");
     }
 
@@ -273,6 +366,21 @@ public class GameManager : MonoBehaviour
     void OnEnemigoDerrotado(GameObject enemigo, string tipo)
     {
         Debug.Log( tipo + " derrotado!");
+        
+        if (tipo.Contains("Gorgon"))
+        {
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.ReproducirEfectoMuerteGorgons();
+            }
+        }
+        else if (tipo.Contains("Caballero"))
+        {
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.ReproducirEfectoMuerteCaballero();
+            }
+        }
    
         enemigos[tipo].vidaActual = enemigos[tipo].vidaMaxima;
         
@@ -302,11 +410,17 @@ public class GameManager : MonoBehaviour
     {
         barraVida = 10f;
         morir = false;
-        llaveObtenida = false; // REINICIAR LLAVE TAMBIÉN
+        llaveObtenida = false;
+        Instance.muerteYaProcesada = false;
 
         foreach (var enemigo in enemigos.Values)
         {
             enemigo.vidaActual = enemigo.vidaMaxima;
+        }
+
+        if (Instance.animator != null)
+        {
+            Instance.animator.SetBool("activarMuerte", false);
         }
 
         Instance.actualizarUIPendiente = true;

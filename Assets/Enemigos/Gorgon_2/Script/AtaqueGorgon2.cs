@@ -22,6 +22,9 @@ public class AtaqueGorgon2 : MonoBehaviour
     // Variables para físicas
     private bool aplicarKnockbackPendiente = false;
     private GameObject jugadorParaKnockback;
+    
+    // Variable para controlar el audio (para evitar múltiples reproducciones)
+    private bool audioAtaqueReproducido = false;
 
     void Start()
     {
@@ -112,7 +115,14 @@ public class AtaqueGorgon2 : MonoBehaviour
         atacando = true;
         jugadoresGolpeados.Clear();
         frameAtaqueActivo = false;
+        audioAtaqueReproducido = false;
         Debug.Log("Gorgon2 iniciando secuencia de ataque");
+        
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.ReproducirEfectoAtaqueGorgons();
+            audioAtaqueReproducido = true;
+        }
     }
 
     void EjecutarAtaqueEnFrame()
@@ -163,6 +173,7 @@ public class AtaqueGorgon2 : MonoBehaviour
     {
         atacando = false;
         frameAtaqueActivo = false;
+        audioAtaqueReproducido = false;
         Debug.Log("Gorgon2 finalizando ataque");
     }
 

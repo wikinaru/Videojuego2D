@@ -22,6 +22,9 @@ public class AtaqueCaballero2 : MonoBehaviour
     // Variables para físicas
     private bool aplicarKnockbackPendiente = false;
     private GameObject jugadorParaKnockback;
+    
+    // Variable para controlar el sonido de ataque
+    private bool sonidoAtaqueReproducido = false;
 
     void Start()
     {
@@ -90,6 +93,16 @@ public class AtaqueCaballero2 : MonoBehaviour
                 if (enFrameAtaque && !frameAtaqueActivo)
                 {
                     frameAtaqueActivo = true;
+                    
+                    if (!sonidoAtaqueReproducido)
+                    {
+                        if (AudioManager.Instance != null)
+                        {
+                            AudioManager.Instance.ReproducirEfectoAtaqueCaballero2();
+                        }
+                        sonidoAtaqueReproducido = true;
+                    }
+                    
                     Debug.Log($"Frames de ataque iniciados: {frameActual:F1} (frames {frameInicioAtaque}-{frameFinAtaque})");
                 }
                 else if (!enFrameAtaque && frameAtaqueActivo)
@@ -116,6 +129,7 @@ public class AtaqueCaballero2 : MonoBehaviour
         atacando = true;
         jugadoresGolpeados.Clear();
         frameAtaqueActivo = false;
+        sonidoAtaqueReproducido = false;
         Debug.Log("Caballero2 iniciando secuencia de ataque");
     }
 
@@ -167,6 +181,7 @@ public class AtaqueCaballero2 : MonoBehaviour
     {
         atacando = false;
         frameAtaqueActivo = false;
+        sonidoAtaqueReproducido = false;
         Debug.Log("Caballero2 finalizando ataque");
     }
 

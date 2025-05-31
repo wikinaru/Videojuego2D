@@ -16,6 +16,9 @@ public class Caballero3Manager : MonoBehaviour
     private bool debeMoverse = false;
     private Vector3 destinoMovimiento;
     private float velocidadMovimiento;
+    
+    // Variables para audio
+    private bool estabaCaminando = false;
 
     void Start()
     {
@@ -40,6 +43,11 @@ public class Caballero3Manager : MonoBehaviour
             ActualizarDireccion();
             
             debeMoverse = false;
+            
+            if (estabaCaminando)
+            {
+                estabaCaminando = false;
+            }
         }
         else if (distancia <= 4f)
         {
@@ -52,6 +60,15 @@ public class Caballero3Manager : MonoBehaviour
             destinoMovimiento = personaje.transform.position;
             velocidadMovimiento = velocidadCaballero3 * Time.fixedDeltaTime;
             debeMoverse = true;
+            
+            if (!estabaCaminando)
+            {
+                if (AudioManager.Instance != null)
+                {
+                    AudioManager.Instance.ReproducirEfectoMovimientoCaballeros();
+                }
+                estabaCaminando = true;
+            }
         }
         else
         {
@@ -74,6 +91,20 @@ public class Caballero3Manager : MonoBehaviour
             destinoMovimiento = posicionInical;
             velocidadMovimiento = velocidadCaballero3 * Time.fixedDeltaTime;
             debeMoverse = true;
+            
+            if (!estabaCaminando)
+            {
+                if (AudioManager.Instance != null)
+                {
+                    AudioManager.Instance.ReproducirEfectoMovimientoCaballeros();
+                }
+                estabaCaminando = true;
+            }
+        }
+        
+        if (!debeMoverse && estabaCaminando)
+        {
+            estabaCaminando = false;
         }
     }
 

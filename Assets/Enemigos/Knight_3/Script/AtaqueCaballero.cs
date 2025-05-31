@@ -98,6 +98,13 @@ public class AtaqueCaballero : MonoBehaviour
         if (!atacando)
         {
             Debug.Log("¡Iniciando ataque automático del Caballero3!");
+            
+            // Reproducir sonido de ataque
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.ReproducirEfectoAtaqueCaballero3();
+            }
+            
             StartCoroutine(EjecutarAtaque());
         }
     }
