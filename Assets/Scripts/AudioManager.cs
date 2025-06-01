@@ -38,6 +38,9 @@ public class AudioManager : MonoBehaviour
 
     public static AudioManager Instance;
 
+    public GameObject musicaObj;
+    AudioSource musicaAudio;
+
     void Awake()
     {
         if (Instance != null && Instance != this)
@@ -60,10 +63,13 @@ public class AudioManager : MonoBehaviour
     {
         // Configurar AudioSource para música
         musicaAudioSource = gameObject.AddComponent<AudioSource>();
-        musicaAudioSource.loop = true;
-        musicaAudioSource.volume = volumenMusica;
-        musicaAudioSource.playOnAwake = false;
-        musicaAudioSource.priority = 64;
+
+        musicaAudio = musicaObj.GetComponent<AudioSource>();
+        musicaAudio.loop = true;
+        musicaAudio.volume = volumenMusica;
+        musicaAudio.playOnAwake = false;
+        musicaAudio.priority = 64;
+        
 
         // Configurar AudioSource para efectos
         efectosAudioSource = gameObject.AddComponent<AudioSource>();
