@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class MovPersonaje : MonoBehaviour
 {
@@ -31,12 +32,15 @@ public class MovPersonaje : MonoBehaviour
     private bool puedeMoverse = true;
     private bool dobleSaltoActivado = false;
 
-    private bool reproducirSonidoMovimiento = false;
     private float tiempoUltimoSonidoMovimiento = 0f;
-    private float intervaloSonidoMovimiento = 0.4f;
-    
+    public float intervaloSonidoMovimiento = 0.3f;
     private float tiempoUltimoSalto = 0f;
-    private float tiempoSilencioTrasSalto = 0.3f;
+    public float tiempoSilencioTrasSalto = 0.2f;
+    private float tiempoUltimoAterrizar = 0f;
+    public float tiempoSilencioTrasAterrizar = 0.1f;
+
+    private bool estaMuriendo = false;
+    public float tiempoEsperaTrasMuerte = 2f;
 
     void Awake()
     {
@@ -55,13 +59,33 @@ public class MovPersonaje : MonoBehaviour
         
         Spawn_Inicial();
         saltosRestantes = saltosTotales;
+        
+        tiempoUltimoAterrizar = Time.time - tiempoSilencioTrasAterrizar - 1f;
+        
+        if (AudioManager.Instance == null)
+        {
+            Debug.LogWarning("AudioManager no encontrado al inicializar MovPersonaje");
+        }
+        else
+        {
+            Debug.Log("AudioManager encontrado correctamente");
+        }
     }
 
     void Update()
     {
         CapturarInputs();
         
-        if (!puedeMoverse || GameManager.morir) return;
+        if (estaMuriendo) return;
+        
+        if (!puedeMoverse || GameManager.morir) 
+        {
+            if (GameManager.morir && !estaMuriendo)
+            {
+                IniciarSecuenciaMuerte();
+            }
+            return;
+        }
 
         ManejarDireccion();
         ManejarAnimaciones();
@@ -77,7 +101,7 @@ public class MovPersonaje : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (!puedeMoverse || GameManager.morir) return;
+        if (!puedeMoverse || GameManager.morir || estaMuriendo) return;
 
         if (animatorController.GetBool("atacando"))
         {
@@ -87,6 +111,40 @@ public class MovPersonaje : MonoBehaviour
 
         AplicarMovimientoHorizontal();
         AplicarSalto();
+    }
+
+    private void IniciarSecuenciaMuerte()
+    {
+        estaMuriendo = true;
+        puedeMoverse = false;
+        
+        if (rb != null)
+        {
+            rb.velocity = Vector2.zero;
+        }
+        
+        if (animatorController != null)
+        {
+            animatorController.SetTrigger("morir");
+        }
+        
+        Debug.Log("Iniciando secuencia de muerte...");
+        
+        StartCoroutine(CambiarEscenaTrasMuerte());
+    }
+
+    private IEnumerator CambiarEscenaTrasMuerte()
+    {
+        yield return new WaitForSeconds(tiempoEsperaTrasMuerte);
+        
+        Debug.Log("Cambiando a escena de muerte...");
+        SceneManager.LoadScene("3MuerteScene");
+    }
+
+    public void CambiarAEscenaMuerte()
+    {
+        Debug.Log("Cambiando a escena de muerte desde evento del Animator...");
+        SceneManager.LoadScene("3MuerteScene");
     }
 
     private void CapturarInputs()
@@ -133,14 +191,28 @@ public class MovPersonaje : MonoBehaviour
 
     private void ManejarSonidoMovimiento()
     {
-        bool estaMoviendose = (moverse != 0);
+        bool estaMoviendose = Mathf.Abs(moverse) > 0.1f;
         bool estaEnSuelo = suelo;
         bool noEstaAtacando = !animatorController.GetBool("atacando");
+        
         bool haPasadoTiempoSuficienteTrasSalto = (Time.time - tiempoUltimoSalto) >= tiempoSilencioTrasSalto;
+        bool haPasadoTiempoSuficienteTrasAterrizar = (Time.time - tiempoUltimoAterrizar) >= tiempoSilencioTrasAterrizar;
         bool haPasadoTiempoEntreSONIDOS = (Time.time - tiempoUltimoSonidoMovimiento) >= intervaloSonidoMovimiento;
         
-        bool debeReproducirSonido = estaMoviendose && estaEnSuelo && noEstaAtacando && 
-                                   haPasadoTiempoSuficienteTrasSalto && haPasadoTiempoEntreSONIDOS;
+        bool debeReproducirSonido = estaMoviendose && 
+                                   estaEnSuelo && 
+                                   noEstaAtacando && 
+                                   haPasadoTiempoSuficienteTrasSalto && 
+                                   haPasadoTiempoSuficienteTrasAterrizar &&
+                                   haPasadoTiempoEntreSONIDOS;
+        
+        if (estaMoviendose && estaEnSuelo && noEstaAtacando)
+        {
+            if (!haPasadoTiempoEntreSONIDOS)
+            {
+                Debug.Log($"Esperando intervalo de sonido. Tiempo desde último: {Time.time - tiempoUltimoSonidoMovimiento:F2}s");
+            }
+        }
         
         if (debeReproducirSonido)
         {
@@ -151,25 +223,41 @@ public class MovPersonaje : MonoBehaviour
 
     private void ReproducirSonidoMovimiento()
     {
+        Debug.Log("Intentando reproducir sonido de movimiento...");
+        
         if (AudioManager.Instance != null)
         {
             AudioManager.Instance.ReproducirEfectoMovimientoJugador();
+            Debug.Log("Sonido de movimiento reproducido");
         }
         else
         {
-            Debug.LogWarning("AudioManager no encontrado. No se puede reproducir el sonido de movimiento.");
+            Debug.LogError("AudioManager.Instance es null! No se puede reproducir el sonido de movimiento.");
+            
+            AudioManager audioManager = FindObjectOfType<AudioManager>();
+            if (audioManager != null)
+            {
+                Debug.Log("AudioManager encontrado mediante FindObjectOfType, pero Instance es null");
+            }
+            else
+            {
+                Debug.LogError("No se encontró ningún AudioManager en la escena");
+            }
         }
     }
 
     private void ReproducirSonidoSalto()
     {
+        Debug.Log("Intentando reproducir sonido de salto...");
+        
         if (AudioManager.Instance != null)
         {
             AudioManager.Instance.ReproducirEfectoSaltoJugador();
+            Debug.Log("Sonido de salto reproducido");
         }
         else
         {
-            Debug.LogWarning("AudioManager no encontrado. No se puede reproducir el sonido de salto.");
+            Debug.LogError("AudioManager no encontrado. No se puede reproducir el sonido de salto.");
         }
     }
 
@@ -195,6 +283,8 @@ public class MovPersonaje : MonoBehaviour
         {
             saltosRestantes = saltosTotales;
             animatorController.SetBool("activarSalto", false);
+            
+            tiempoUltimoAterrizar = Time.time;
             
             Debug.Log("Aterrizó - Saltos restaurados: " + saltosRestantes);
         }
@@ -261,6 +351,12 @@ public class MovPersonaje : MonoBehaviour
     public void Spawn_Inicial()
     {
         transform.position = respawn.transform.position;
+        
+        tiempoUltimoAterrizar = Time.time - tiempoSilencioTrasAterrizar - 1f;
+        tiempoUltimoSalto = Time.time - tiempoSilencioTrasSalto - 1f;
+        tiempoUltimoSonidoMovimiento = 0f;
+        
+        estaMuriendo = false;
     }
 
     public void Movimiento(bool activar)
@@ -283,6 +379,12 @@ public class MovPersonaje : MonoBehaviour
         {
             rb.velocity = Vector2.zero;
         }
+        
+        tiempoUltimoAterrizar = Time.time;
+        tiempoUltimoSalto = Time.time;
+        tiempoUltimoSonidoMovimiento = 0f;
+        
+        estaMuriendo = false;
     }
 
     void OnDrawGizmosSelected()
@@ -291,5 +393,15 @@ public class MovPersonaje : MonoBehaviour
         Vector3 pos = transform.position;
         Vector3 tamaño = new Vector3(anchoDeteccionSuelo, distanciaDeteccionSuelo, 0.1f);
         Gizmos.DrawWireCube(pos + Vector3.down * distanciaDeteccionSuelo, tamaño);
+    }
+
+    public void TestAudioMovimiento()
+    {
+        ReproducirSonidoMovimiento();
+    }
+
+    public void TestAudioSalto()
+    {
+        ReproducirSonidoSalto();
     }
 }

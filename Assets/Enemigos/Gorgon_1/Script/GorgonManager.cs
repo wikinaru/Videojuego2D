@@ -13,6 +13,10 @@ public class GorgonManager : MonoBehaviour
     private GameObject personaje;
     private Animator gorgon1_AnimController;
     
+    // Variables para el sprite flip - AÑADIDAS
+    private SpriteRenderer spriteRenderer;
+    private bool mirandoDerecha = false; // Inicia mirando a la izquierda
+    
     // Variables para FixedUpdate
     private float distanciaActual;
     private bool deberiaMoverse;
@@ -27,12 +31,18 @@ public class GorgonManager : MonoBehaviour
     void Start()
     {
         gorgon1_AnimController = GetComponent<Animator>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
         posicionInical = transform.position;
         personaje = GameObject.FindGameObjectWithTag("Player");
         
         if (personaje == null)
         {
             Debug.LogError("No se encontró el Player. Asegúrate de que tenga el tag 'Player'");
+        }
+        
+        if (spriteRenderer == null)
+        {
+            Debug.LogError("No se encontró SpriteRenderer en " + gameObject.name);
         }
     }
 
@@ -65,6 +75,8 @@ public class GorgonManager : MonoBehaviour
             deberiaMoverse = false;
             deberiaAtacar = true;
             
+            ActualizarDireccion();
+            
             gorgon1_AnimController.SetBool("gorgon1ActivarCaminar", false);
             gorgon1_AnimController.SetBool("gorgon1ActivarAtacar", true);
         }
@@ -75,6 +87,8 @@ public class GorgonManager : MonoBehaviour
             
             deberiaMoverse = true;
             deberiaAtacar = false;
+            
+            ActualizarDireccion();
             
             gorgon1_AnimController.SetBool("gorgon1ActivarCaminar", true);
             gorgon1_AnimController.SetBool("gorgon1ActivarAtacar", false);
@@ -89,6 +103,30 @@ public class GorgonManager : MonoBehaviour
             
             gorgon1_AnimController.SetBool("gorgon1ActivarCaminar", false);
             gorgon1_AnimController.SetBool("gorgon1ActivarAtacar", false);
+        }
+    }
+
+    void ActualizarDireccion()
+    {
+        if (personaje == null) return;
+        
+        if (personaje.transform.position.x > transform.position.x)
+        {
+            mirandoDerecha = true;
+        }
+        else if (personaje.transform.position.x < transform.position.x)
+        {
+            mirandoDerecha = false;
+        }
+        
+        ActualizarFlip();
+    }
+
+    void ActualizarFlip()
+    {
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.flipX = !mirandoDerecha;
         }
     }
 
@@ -112,9 +150,21 @@ public class GorgonManager : MonoBehaviour
                 AudioManager.Instance.ReproducirEfectoMovimientoGorgons();
             }
             audioMovimientoReproduciendose = true;
+            
+            StartCoroutine(DetenerAudioMovimientoDespuesDeTiempo());
         }
         else if ((estadoActual == EstadoMovimiento.Idle || estadoActual == EstadoMovimiento.Atacando) 
                  && audioMovimientoReproduciendose)
+        {
+            audioMovimientoReproduciendose = false;
+        }
+    }
+    
+    private IEnumerator DetenerAudioMovimientoDespuesDeTiempo()
+    {
+        yield return new WaitForSeconds(0.5f);
+        
+        if (estadoActual == EstadoMovimiento.Persiguiendo)
         {
             audioMovimientoReproduciendose = false;
         }

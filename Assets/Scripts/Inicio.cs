@@ -9,8 +9,8 @@ public class Inicio : MonoBehaviour
 
     void Start()
     {
-        ajustes = GameObject.Find("PanelAjustes");
-        ajustes.SetActive(false);
+        /*ajustes = GameObject.Find("PanelAjustes");
+        ajustes.SetActive(false);*/
     }
 
     void Update()
