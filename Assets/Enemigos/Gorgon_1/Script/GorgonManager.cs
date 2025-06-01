@@ -18,8 +18,11 @@ public class GorgonManager : MonoBehaviour
     private bool deberiaMoverse;
     private bool deberiaAtacar;
     
-    // Variables para audio
-    private bool estabaCaminando = false;
+    // Variables para control de estados y audio
+    private enum EstadoMovimiento { Idle, Persiguiendo, Atacando }
+    private EstadoMovimiento estadoActual = EstadoMovimiento.Idle;
+    private EstadoMovimiento estadoAnterior = EstadoMovimiento.Idle;
+    private bool audioMovimientoReproduciendose = false;
 
     void Start()
     {
@@ -38,53 +41,7 @@ public class GorgonManager : MonoBehaviour
         if (personaje == null) return;
         
         distanciaActual = Vector3.Distance(transform.position, personaje.transform.position);
-        
-        if (distanciaActual <= distanciaAtaque)
-        {
-            // ATACAR
-            deberiaMoverse = false;
-            deberiaAtacar = true;
-            
-            gorgon1_AnimController.SetBool("gorgon1ActivarCaminar", false);
-            gorgon1_AnimController.SetBool("gorgon1ActivarAtacar", true);
-            
-            if (estabaCaminando)
-            {
-                estabaCaminando = false;
-            }
-        }
-        else if (distanciaActual <= distanciaPerseguir)
-        {
-            // CAMINAR/PERSEGUIR
-            deberiaMoverse = true;
-            deberiaAtacar = false;
-            
-            gorgon1_AnimController.SetBool("gorgon1ActivarCaminar", true);
-            gorgon1_AnimController.SetBool("gorgon1ActivarAtacar", false);
-            
-            if (!estabaCaminando)
-            {
-                if (AudioManager.Instance != null)
-                {
-                    AudioManager.Instance.ReproducirEfectoMovimientoGorgons();
-                }
-                estabaCaminando = true;
-            }
-        }
-        else
-        {
-            // IDLE/VOLVER
-            deberiaMoverse = false;
-            deberiaAtacar = false;
-            
-            gorgon1_AnimController.SetBool("gorgon1ActivarCaminar", false);
-            gorgon1_AnimController.SetBool("gorgon1ActivarAtacar", false);
-            
-            if (estabaCaminando)
-            {
-                estabaCaminando = false;
-            }
-        }
+        ProcesarEstadoIA();
     }
 
     void FixedUpdate()
@@ -95,6 +52,71 @@ public class GorgonManager : MonoBehaviour
         {
             float velocidadFinal = velocidadGorgon1 * Time.fixedDeltaTime;
             transform.position = Vector3.MoveTowards(transform.position, personaje.transform.position, velocidadFinal);
+        }
+    }
+
+    void ProcesarEstadoIA()
+    {
+        if (distanciaActual <= distanciaAtaque)
+        {
+            // ATACAR
+            CambiarEstado(EstadoMovimiento.Atacando);
+            
+            deberiaMoverse = false;
+            deberiaAtacar = true;
+            
+            gorgon1_AnimController.SetBool("gorgon1ActivarCaminar", false);
+            gorgon1_AnimController.SetBool("gorgon1ActivarAtacar", true);
+        }
+        else if (distanciaActual <= distanciaPerseguir)
+        {
+            // CAMINAR/PERSEGUIR
+            CambiarEstado(EstadoMovimiento.Persiguiendo);
+            
+            deberiaMoverse = true;
+            deberiaAtacar = false;
+            
+            gorgon1_AnimController.SetBool("gorgon1ActivarCaminar", true);
+            gorgon1_AnimController.SetBool("gorgon1ActivarAtacar", false);
+        }
+        else
+        {
+            // IDLE/VOLVER
+            CambiarEstado(EstadoMovimiento.Idle);
+            
+            deberiaMoverse = false;
+            deberiaAtacar = false;
+            
+            gorgon1_AnimController.SetBool("gorgon1ActivarCaminar", false);
+            gorgon1_AnimController.SetBool("gorgon1ActivarAtacar", false);
+        }
+    }
+
+    void CambiarEstado(EstadoMovimiento nuevoEstado)
+    {
+        if (estadoActual != nuevoEstado)
+        {
+            estadoAnterior = estadoActual;
+            estadoActual = nuevoEstado;
+            
+            ManejarAudioPorEstado();
+        }
+    }
+
+    void ManejarAudioPorEstado()
+    {
+        if (estadoActual == EstadoMovimiento.Persiguiendo && !audioMovimientoReproduciendose)
+        {
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.ReproducirEfectoMovimientoGorgons();
+            }
+            audioMovimientoReproduciendose = true;
+        }
+        else if ((estadoActual == EstadoMovimiento.Idle || estadoActual == EstadoMovimiento.Atacando) 
+                 && audioMovimientoReproduciendose)
+        {
+            audioMovimientoReproduciendose = false;
         }
     }
 }

@@ -21,11 +21,15 @@ public class Caballero2Manager : MonoBehaviour
     // Variables para el sistema de movimiento
     private enum EstadoMovimiento { Idle, Persiguiendo, Atacando, VolviendoAInicio }
     private EstadoMovimiento estadoActual = EstadoMovimiento.Idle;
+    private EstadoMovimiento estadoAnterior = EstadoMovimiento.Idle;
     private Vector3 objetivoMovimiento;
     private bool debeMoverse = false;
     
-    // Variables para audio
-    private bool estabaCaminando = false;
+    // Variables para control de audio más específicas
+    private bool deberiaReproducirAudioMovimiento = false;
+    private bool audioMovimientoActivo = false;
+    private float tiempoUltimoAudioMovimiento = 0f;
+    private float intervalAudioMovimiento = 0.5f;
 
     void Start()
     {
@@ -47,6 +51,7 @@ public class Caballero2Manager : MonoBehaviour
 
         float distancia = Vector3.Distance(transform.position, personaje.transform.position);
         ProcesarEstadoIA(distancia);
+        ManejarAudioMovimiento();
     }
 
     void FixedUpdate()
@@ -66,11 +71,7 @@ public class Caballero2Manager : MonoBehaviour
             
             ActualizarDireccion();
             debeMoverse = false;
-            
-            if (estabaCaminando)
-            {
-                estabaCaminando = false;
-            }
+            deberiaReproducirAudioMovimiento = false;
             
             if (PuedeAtacar())
             {
@@ -92,50 +93,46 @@ public class Caballero2Manager : MonoBehaviour
             
             objetivoMovimiento = personaje.transform.position;
             debeMoverse = true;
+            deberiaReproducirAudioMovimiento = true;
 
             ActualizarDireccion();
-
-            if (!estabaCaminando)
-            {
-                if (AudioManager.Instance != null)
-                {
-                    AudioManager.Instance.ReproducirEfectoMovimientoCaballeros();
-                }
-                estabaCaminando = true;
-            }
-
             caballero2_AnimController.SetBool("caballero2ActivarAtacar", false);
         }
         else
         {
             // VOLVER A POSICIÓN INICIAL
-            CambiarEstado(EstadoMovimiento.VolviendoAInicio);
+            float distanciaAInicio = Vector3.Distance(transform.position, posicionInical);
             
-            objetivoMovimiento = posicionInical;
-            debeMoverse = true;
-            
-            Vector3 direccionAInicial = (posicionInical - transform.position).normalized;
-            if (direccionAInicial.x > 0.1f)
+            if (distanciaAInicio > 0.1f)
             {
-                mirandoDerecha = false;
-            }
-            else if (direccionAInicial.x < -0.1f)
-            {
-                mirandoDerecha = true;
-            }
-            
-            ActualizarFlip();
-            
-            if (!estabaCaminando)
-            {
-                if (AudioManager.Instance != null)
+                CambiarEstado(EstadoMovimiento.VolviendoAInicio);
+                
+                objetivoMovimiento = posicionInical;
+                debeMoverse = true;
+                deberiaReproducirAudioMovimiento = true;
+                
+                Vector3 direccionAInicial = (posicionInical - transform.position).normalized;
+                if (direccionAInicial.x > 0.1f)
                 {
-                    AudioManager.Instance.ReproducirEfectoMovimientoCaballeros();
+                    mirandoDerecha = false;
                 }
-                estabaCaminando = true;
+                else if (direccionAInicial.x < -0.1f)
+                {
+                    mirandoDerecha = true;
+                }
+                
+                ActualizarFlip();
+                caballero2_AnimController.SetBool("caballero2ActivarAtacar", false);
             }
-            
-            caballero2_AnimController.SetBool("caballero2ActivarAtacar", false);
+            else
+            {
+                //IDLE
+                CambiarEstado(EstadoMovimiento.Idle);
+                
+                debeMoverse = false;
+                deberiaReproducirAudioMovimiento = false;
+                caballero2_AnimController.SetBool("caballero2ActivarAtacar", false);
+            }
         }
     }
 
@@ -155,12 +152,8 @@ public class Caballero2Manager : MonoBehaviour
                 if (Vector3.Distance(transform.position, posicionInical) < 0.1f)
                 {
                     debeMoverse = false;
+                    deberiaReproducirAudioMovimiento = false;
                     CambiarEstado(EstadoMovimiento.Idle);
-                    
-                    if (estabaCaminando)
-                    {
-                        estabaCaminando = false;
-                    }
                 }
                 break;
         }
@@ -170,17 +163,36 @@ public class Caballero2Manager : MonoBehaviour
     {
         if (estadoActual != nuevoEstado)
         {
-            if ((estadoActual == EstadoMovimiento.Persiguiendo || estadoActual == EstadoMovimiento.VolviendoAInicio) &&
-                (nuevoEstado == EstadoMovimiento.Idle || nuevoEstado == EstadoMovimiento.Atacando))
-            {
-                if (estabaCaminando)
-                {
-                    estabaCaminando = false;
-                }
-            }
-            
+            estadoAnterior = estadoActual;
             estadoActual = nuevoEstado;
         }
+    }
+
+    void ManejarAudioMovimiento()
+    {
+        if (deberiaReproducirAudioMovimiento && !audioMovimientoActivo && 
+            Time.time - tiempoUltimoAudioMovimiento >= intervalAudioMovimiento)
+        {
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.ReproducirEfectoMovimientoCaballeros();
+                audioMovimientoActivo = true;
+                tiempoUltimoAudioMovimiento = Time.time;
+                
+                StartCoroutine(DesactivarAudioMovimientoFlag());
+            }
+        }
+        
+        if (!deberiaReproducirAudioMovimiento)
+        {
+            audioMovimientoActivo = false;
+        }
+    }
+
+    IEnumerator DesactivarAudioMovimientoFlag()
+    {
+        yield return new WaitForSeconds(0.1f);
+        audioMovimientoActivo = false;
     }
 
     bool PuedeAtacar()
